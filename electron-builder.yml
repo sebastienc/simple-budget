@@ -1,0 +1,11 @@
+appId: com.sebastienc.simplebudget
+productName: Simple Budget
+directories:
+  output: release
+files:
+  - dist-electron/**/*
+  - package.json
+  - node_modules/**/*
+mac:
+  target: dmg
+  category: public.app-category.finance

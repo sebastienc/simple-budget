@@ -1,23 +1,22 @@
 import React from 'react';
 import Titlebar from '../titlebar/Titlebar';
-import AuthenticatedPage from '../AuthenticatedPage';
 
-export interface AuthenticatedPageLayoutProps {
+export interface PageLayoutProps {
   pageTitle: string;
   children: React.ReactNode | React.ReactNode[];
 }
 
-const AuthenticatedPageLayout: React.FC<AuthenticatedPageLayoutProps> = ({ pageTitle, children }) => {
+const PageLayout: React.FC<PageLayoutProps> = ({ pageTitle, children }) => {
   return (
-    <AuthenticatedPage>
+    <div className="flex h-full w-full flex-col">
       <Titlebar pageTitle={pageTitle} />
       <div className="flex w-full flex-auto flex-row">
         <div id="content" className="flex h-full w-full flex-none flex-col">
           {children}
         </div>
       </div>
-    </AuthenticatedPage>
+    </div>
   );
 };
 
-export default AuthenticatedPageLayout;
+export default PageLayout;
