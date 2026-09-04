@@ -1,37 +1,77 @@
 import { getDb } from './index';
 
-export const accountsQueries = {
-  list: () => getDb().selectFrom('accounts').selectAll().orderBy('id').execute(),
-  create: (input: { name: string }) =>
-    getDb().insertInto('accounts').values({ name: input.name }).returningAll().executeTakeFirstOrThrow(),
-};
-
-export const categoriesQueries = {
-  list: () => getDb().selectFrom('categories').selectAll().orderBy('id').execute(),
-  create: (input: { name: string }) =>
-    getDb().insertInto('categories').values({ name: input.name }).returningAll().executeTakeFirstOrThrow(),
-};
-
-export interface CreateTransactionInput {
-  accountId: number;
-  categoryId?: number | null;
-  amountCents: number;
-  description?: string | null;
-  occurredOn: string;
+export interface UpdateAccountInput {
+  startingBalanceCents?: number;
+  startingBalanceDate?: string | null;
 }
 
-export const transactionsQueries = {
-  list: () => getDb().selectFrom('transactions').selectAll().orderBy('occurred_on', 'desc').execute(),
-  create: (input: CreateTransactionInput) =>
+export const accountsQueries = {
+  list: () => getDb().selectFrom('accounts').selectAll().orderBy('id').execute(),
+  get: (id: number) => getDb().selectFrom('accounts').selectAll().where('id', '=', id).executeTakeFirst(),
+  create: (input: { name: string }) =>
+    getDb().insertInto('accounts').values({ name: input.name }).returningAll().executeTakeFirstOrThrow(),
+  update: (id: number, input: UpdateAccountInput) =>
     getDb()
-      .insertInto('transactions')
+      .updateTable('accounts')
+      .set({
+        ...(input.startingBalanceCents !== undefined && { starting_balance_cents: input.startingBalanceCents }),
+        ...(input.startingBalanceDate !== undefined && { starting_balance_date: input.startingBalanceDate }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow(),
+};
+
+export interface CreateRecurringItemInput {
+  accountId: number;
+  name: string;
+  amountCents: number;
+  frequency: string;
+  interval: number;
+  startDate: string;
+  endDate?: string | null;
+}
+
+export interface UpdateRecurringItemInput {
+  name?: string;
+  amountCents?: number;
+  frequency?: string;
+  interval?: number;
+  startDate?: string;
+  endDate?: string | null;
+}
+
+export const recurringItemsQueries = {
+  list: (accountId: number) =>
+    getDb().selectFrom('recurring_items').selectAll().where('account_id', '=', accountId).orderBy('id').execute(),
+  get: (id: number) => getDb().selectFrom('recurring_items').selectAll().where('id', '=', id).executeTakeFirst(),
+  create: (input: CreateRecurringItemInput) =>
+    getDb()
+      .insertInto('recurring_items')
       .values({
         account_id: input.accountId,
-        category_id: input.categoryId ?? null,
+        name: input.name,
         amount_cents: input.amountCents,
-        description: input.description ?? null,
-        occurred_on: input.occurredOn,
+        frequency: input.frequency,
+        interval: input.interval,
+        start_date: input.startDate,
+        end_date: input.endDate ?? null,
       })
       .returningAll()
       .executeTakeFirstOrThrow(),
+  update: (id: number, input: UpdateRecurringItemInput) =>
+    getDb()
+      .updateTable('recurring_items')
+      .set({
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.amountCents !== undefined && { amount_cents: input.amountCents }),
+        ...(input.frequency !== undefined && { frequency: input.frequency }),
+        ...(input.interval !== undefined && { interval: input.interval }),
+        ...(input.startDate !== undefined && { start_date: input.startDate }),
+        ...(input.endDate !== undefined && { end_date: input.endDate }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow(),
+  delete: (id: number) => getDb().deleteFrom('recurring_items').where('id', '=', id).execute(),
 };

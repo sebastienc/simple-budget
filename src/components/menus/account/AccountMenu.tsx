@@ -1,12 +1,47 @@
-import { Button, Menu, MenuTrigger, Popover, Separator } from 'react-aria-components';
+import { useRef } from 'react';
+import { Button, Menu, MenuTrigger, Popover, Separator, type Key } from 'react-aria-components';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import AccountMenuItem from './AccountMenuItem';
 import DarkModeSwitch from './Theme/DarkModeSwitch';
 import LanguageSelector from './LanguageSelection/LanguageSelector';
+import { useBackup } from '@/data/useBackup';
+import { useToaster } from '@/toast/useToaster';
 
 const AccountMenu = () => {
+  const { t } = useTranslation();
+  const { exportBackup, importBackup } = useBackup();
+  const { addToast } = useToaster();
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAction = (key: Key) => {
+    if (key === 'export') {
+      exportBackup();
+    } else if (key === 'import') {
+      importInputRef.current?.click();
+    }
+  };
+
+  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) {
+      return;
+    }
+    if (!window.confirm(t('ImportBackupConfirm'))) {
+      return;
+    }
+    const result = await importBackup(file);
+    if (result.ok) {
+      window.location.reload();
+    } else {
+      addToast(t('ImportBackupFailed'));
+    }
+  };
+
   return (
     <div className="inline-flex h-full w-full items-center justify-center border-b-2 border-solid border-slate-400 bg-slate-300 dark:bg-zinc-900">
+      <input ref={importInputRef} type="file" accept=".db" className="hidden" onChange={handleFileSelected} />
       <MenuTrigger>
         <Button
           id="account-menu-trigger"
@@ -22,9 +57,9 @@ const AccountMenu = () => {
           <Separator className="mx-3 mt-4 mb-2 h-[1px] border-none bg-gray-300 dark:bg-zinc-600" />
           <LanguageSelector />
           <Separator className="mx-3 mt-4 mb-2 h-[1px] border-none bg-gray-300 dark:bg-zinc-600" />
-          <Menu className="outline-hidden">
-            <AccountMenuItem id="account-settings">Account Settings</AccountMenuItem>
-            <AccountMenuItem id="support">Support</AccountMenuItem>
+          <Menu className="outline-hidden" onAction={handleAction}>
+            <AccountMenuItem id="export">{t('ExportBackup')}</AccountMenuItem>
+            <AccountMenuItem id="import">{t('ImportBackup')}</AccountMenuItem>
           </Menu>
         </Popover>
       </MenuTrigger>

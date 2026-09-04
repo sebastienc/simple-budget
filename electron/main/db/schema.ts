@@ -3,27 +3,24 @@ import type { ColumnType, Generated } from 'kysely';
 export interface AccountsTable {
   id: Generated<number>;
   name: string;
+  starting_balance_cents: ColumnType<number, number | undefined, number>;
+  starting_balance_date: string | null;
   created_at: ColumnType<string, string | undefined, never>;
 }
 
-export interface CategoriesTable {
-  id: Generated<number>;
-  name: string;
-  created_at: ColumnType<string, string | undefined, never>;
-}
-
-export interface TransactionsTable {
+export interface RecurringItemsTable {
   id: Generated<number>;
   account_id: number;
-  category_id: number | null;
+  name: string;
   amount_cents: number;
-  description: string | null;
-  occurred_on: string;
+  frequency: string;
+  interval: ColumnType<number, number | undefined, number>;
+  start_date: string;
+  end_date: string | null;
   created_at: ColumnType<string, string | undefined, never>;
 }
 
 export interface Database {
   accounts: AccountsTable;
-  categories: CategoriesTable;
-  transactions: TransactionsTable;
+  recurring_items: RecurringItemsTable;
 }

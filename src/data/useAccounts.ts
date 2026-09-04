@@ -3,7 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 export interface Account {
   id: number;
   name: string;
-  created_at: string;
+  startingBalanceCents: number;
+  startingBalanceDate: string | null;
+  createdAt: string;
 }
 
 export function useAccounts() {
@@ -33,5 +35,17 @@ export function useAccounts() {
     [refresh],
   );
 
-  return { accounts, isLoading, createAccount };
+  const updateStartingBalance = useCallback(
+    async (accountId: number, startingBalanceCents: number, startingBalanceDate: string) => {
+      await fetch(`/api/accounts/${accountId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startingBalanceCents, startingBalanceDate }),
+      });
+      await refresh();
+    },
+    [refresh],
+  );
+
+  return { accounts, isLoading, createAccount, updateStartingBalance };
 }
