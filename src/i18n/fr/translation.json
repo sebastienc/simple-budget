@@ -60,5 +60,9 @@
   "CorrectionAdded": "Correction ajoutée",
   "CorrectionDeleted": "Correction supprimée",
   "DeleteCorrectionConfirm": "Supprimer cette correction? Cette action est irréversible.",
-  "BalanceCorrectionApplied": "Correction de solde"
+  "BalanceCorrectionApplied": "Correction de solde",
+  "SinkingFund": "Fonds de prévoyance",
+  "NextOccurrence": "Prochaine échéance",
+  "SuggestedMonthlySetAside": "Mise de côté mensuelle suggérée",
+  "SinkingFundTotal": "Total du fonds de prévoyance : {{amount}}/mois ({{count}} éléments)"
 }

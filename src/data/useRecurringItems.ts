@@ -13,6 +13,9 @@ export interface RecurringItem {
   endDate: string | null;
   semiMonthlyDay1: number | null;
   semiMonthlyDay2: number | null;
+  sinkingFund: boolean;
+  nextOccurrenceDate: string | null;
+  suggestedMonthlySetAsideCents: number | null;
   createdAt: string;
 }
 
@@ -25,6 +28,7 @@ export interface RecurringItemInput {
   endDate?: string | null;
   semiMonthlyDay1?: number | null;
   semiMonthlyDay2?: number | null;
+  sinkingFund?: boolean;
 }
 
 export function useRecurringItems(accountId: number | null) {

@@ -3,9 +3,17 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { writeFile, unlink } from 'fs/promises';
 import SqliteDatabase from 'better-sqlite3';
+import type { Selectable } from 'kysely';
+import type { RecurringItemsTable } from '../db/schema';
 import { accountsQueries, recurringItemsQueries, balanceCheckpointsQueries } from '../db/queries';
-import { toAccountJson, toRecurringItemJson, toBalanceCheckpointJson } from './mappers';
-import { projectBalance, sumProjections, mergeCheckpoints, type Frequency, type RecurringItemInput } from '../projection';
+import { toAccountJson, toRecurringItemJson, toRecurringItemInput, toBalanceCheckpointJson } from './mappers';
+import {
+  projectBalance,
+  sumProjections,
+  mergeCheckpoints,
+  computeSinkingFundContribution,
+  type Frequency,
+} from '../projection';
 import { backupDbTo, replaceDbWith } from '../db';
 
 export const apiRouter = Router();
@@ -26,6 +34,14 @@ function isValidDayOfMonth(value: unknown): value is number {
 function parseId(raw: string): number | null {
   const id = Number(raw);
   return Number.isInteger(id) ? id : null;
+}
+
+function withSinkingFundContribution(row: Selectable<RecurringItemsTable>, todayIso: string) {
+  const json = toRecurringItemJson(row);
+  const contribution = json.sinkingFund
+    ? computeSinkingFundContribution(toRecurringItemInput(row), todayIso)
+    : { nextOccurrenceDate: null, suggestedMonthlySetAsideCents: null };
+  return { ...json, ...contribution };
 }
 
 apiRouter.get('/accounts', async (_req, res) => {
@@ -88,7 +104,8 @@ apiRouter.get('/accounts/:id/recurring-items', async (req, res) => {
     res.status(404).json({ error: 'account not found' });
     return;
   }
-  res.json((await recurringItemsQueries.list(id as number)).map(toRecurringItemJson));
+  const todayIso = new Date().toISOString().slice(0, 10);
+  res.json((await recurringItemsQueries.list(id as number)).map((row) => withSinkingFundContribution(row, todayIso)));
 });
 
 apiRouter.post('/accounts/:id/recurring-items', async (req, res) => {
@@ -99,7 +116,8 @@ apiRouter.post('/accounts/:id/recurring-items', async (req, res) => {
     return;
   }
 
-  const { name, amountCents, frequency, interval, startDate, endDate, semiMonthlyDay1, semiMonthlyDay2 } = req.body ?? {};
+  const { name, amountCents, frequency, interval, startDate, endDate, semiMonthlyDay1, semiMonthlyDay2, sinkingFund } =
+    req.body ?? {};
   if (typeof name !== 'string' || !name.trim()) {
     res.status(400).json({ error: 'name is required' });
     return;
@@ -128,22 +146,24 @@ apiRouter.post('/accounts/:id/recurring-items', async (req, res) => {
     res.status(400).json({ error: 'semiMonthlyDay1 and semiMonthlyDay2 are required (1-31) for semimonthly frequency' });
     return;
   }
+  if (sinkingFund !== undefined && typeof sinkingFund !== 'boolean') {
+    res.status(400).json({ error: 'sinkingFund must be a boolean' });
+    return;
+  }
 
-  res.status(201).json(
-    toRecurringItemJson(
-      await recurringItemsQueries.create({
-        accountId: id as number,
-        name,
-        amountCents,
-        frequency,
-        interval,
-        startDate,
-        endDate,
-        semiMonthlyDay1,
-        semiMonthlyDay2,
-      }),
-    ),
-  );
+  const created = await recurringItemsQueries.create({
+    accountId: id as number,
+    name,
+    amountCents,
+    frequency,
+    interval,
+    startDate,
+    endDate,
+    semiMonthlyDay1,
+    semiMonthlyDay2,
+    sinkingFund,
+  });
+  res.status(201).json(withSinkingFundContribution(created, new Date().toISOString().slice(0, 10)));
 });
 
 apiRouter.patch('/recurring-items/:id', async (req, res) => {
@@ -154,7 +174,8 @@ apiRouter.patch('/recurring-items/:id', async (req, res) => {
     return;
   }
 
-  const { name, amountCents, frequency, interval, startDate, endDate, semiMonthlyDay1, semiMonthlyDay2 } = req.body ?? {};
+  const { name, amountCents, frequency, interval, startDate, endDate, semiMonthlyDay1, semiMonthlyDay2, sinkingFund } =
+    req.body ?? {};
   if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
     res.status(400).json({ error: 'name must be a non-empty string' });
     return;
@@ -191,21 +212,23 @@ apiRouter.patch('/recurring-items/:id', async (req, res) => {
     res.status(400).json({ error: 'semiMonthlyDay1 and semiMonthlyDay2 are required (1-31) for semimonthly frequency' });
     return;
   }
+  if (sinkingFund !== undefined && typeof sinkingFund !== 'boolean') {
+    res.status(400).json({ error: 'sinkingFund must be a boolean' });
+    return;
+  }
 
-  res.json(
-    toRecurringItemJson(
-      await recurringItemsQueries.update(id as number, {
-        name,
-        amountCents,
-        frequency,
-        interval,
-        startDate,
-        endDate,
-        semiMonthlyDay1,
-        semiMonthlyDay2,
-      }),
-    ),
-  );
+  const updated = await recurringItemsQueries.update(id as number, {
+    name,
+    amountCents,
+    frequency,
+    interval,
+    startDate,
+    endDate,
+    semiMonthlyDay1,
+    semiMonthlyDay2,
+    sinkingFund,
+  });
+  res.json(withSinkingFundContribution(updated, new Date().toISOString().slice(0, 10)));
 });
 
 apiRouter.delete('/recurring-items/:id', async (req, res) => {
@@ -287,17 +310,7 @@ apiRouter.get('/accounts/:id/projection', async (req, res) => {
     return;
   }
 
-  const items: RecurringItemInput[] = (await recurringItemsQueries.list(id as number)).map((row) => ({
-    id: row.id,
-    name: row.name,
-    amountCents: row.amount_cents,
-    frequency: row.frequency as Frequency,
-    interval: row.interval,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    semiMonthlyDay1: row.semi_monthly_day1,
-    semiMonthlyDay2: row.semi_monthly_day2,
-  }));
+  const items = (await recurringItemsQueries.list(id as number)).map(toRecurringItemInput);
 
   const explicitCheckpoints = (await balanceCheckpointsQueries.list(id as number)).map((row) => ({
     date: row.date,
@@ -343,17 +356,7 @@ apiRouter.get('/net-worth', async (req, res) => {
 
   const seriesList = await Promise.all(
     included.map(async (account) => {
-      const items: RecurringItemInput[] = (await recurringItemsQueries.list(account.id)).map((row) => ({
-        id: row.id,
-        name: row.name,
-        amountCents: row.amount_cents,
-        frequency: row.frequency as Frequency,
-        interval: row.interval,
-        startDate: row.start_date,
-        endDate: row.end_date,
-        semiMonthlyDay1: row.semi_monthly_day1,
-        semiMonthlyDay2: row.semi_monthly_day2,
-      }));
+      const items = (await recurringItemsQueries.list(account.id)).map(toRecurringItemInput);
       const explicitCheckpoints = (await balanceCheckpointsQueries.list(account.id)).map((row) => ({
         date: row.date,
         balanceCents: row.balance_cents,

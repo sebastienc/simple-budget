@@ -51,6 +51,9 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
     sortBy,
   );
 
+  const sinkingFundItems = items.filter((item) => item.sinkingFund && item.suggestedMonthlySetAsideCents !== null);
+  const sinkingFundTotalCents = sinkingFundItems.reduce((sum, item) => sum + (item.suggestedMonthlySetAsideCents ?? 0), 0);
+
   const handleCreate = async (input: RecurringItemInput) => {
     await createItem(input);
     addToast(t('RecurringItemAdded'));
@@ -95,6 +98,15 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
       )}
 
       {items.length === 0 && mode === 'idle' && <p className="text-gray-500 dark:text-gray-400">{t('NoRecurringItems')}</p>}
+
+      {mode === 'idle' && sinkingFundItems.length > 0 && (
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          {t('SinkingFundTotal', {
+            amount: (sinkingFundTotalCents / 100).toFixed(2),
+            count: sinkingFundItems.length,
+          })}
+        </p>
+      )}
 
       {mode === 'idle' && items.length > 0 && (
         <div className="flex items-center gap-2">
@@ -150,6 +162,13 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   {(item.amountCents / 100).toFixed(2)} · {t(`Frequency${item.frequency.charAt(0).toUpperCase()}${item.frequency.slice(1)}`)}
                   {item.frequency === 'semimonthly' && ` (${item.semiMonthlyDay1}, ${item.semiMonthlyDay2})`}
+                  {item.sinkingFund && item.nextOccurrenceDate && item.suggestedMonthlySetAsideCents !== null && (
+                    <>
+                      {' · '}
+                      {t('NextOccurrence')}: {item.nextOccurrenceDate} · {t('SuggestedMonthlySetAside')}:{' '}
+                      {(item.suggestedMonthlySetAsideCents / 100).toFixed(2)}
+                    </>
+                  )}
                 </span>
               </div>
               <div className="flex gap-2">

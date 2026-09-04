@@ -207,3 +207,47 @@ export function sumProjections(seriesList: ProjectionDay[][]): NetWorthDay[] {
     totalCents: seriesList.reduce((sum, series) => sum + series[i].balanceCents, 0),
   }));
 }
+
+function findNextOccurrence(item: RecurringItemInput, from: Date, maxDays = 3660): Date | null {
+  for (let i = 0; i <= maxDays; i++) {
+    const candidate = addDays(from, i);
+    if (occursOn(item, candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function findPreviousOccurrence(item: RecurringItemInput, before: Date, maxDays = 3660): Date | null {
+  for (let i = 1; i <= maxDays; i++) {
+    const candidate = addDays(before, -i);
+    if (occursOn(item, candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+export interface SinkingFundContribution {
+  nextOccurrenceDate: string | null;
+  suggestedMonthlySetAsideCents: number | null;
+}
+
+// Suggests a monthly set-aside for a lump-sum recurring item: amount divided
+// by the months between its previous and next occurrence. Falls back to
+// "today" as the anchor when there's no previous occurrence yet (the item's
+// very first due date). The month count is floored at 1 so a same-day/near-
+// term due date just suggests the whole amount, never an inflated multiple.
+export function computeSinkingFundContribution(item: RecurringItemInput, todayIso: string): SinkingFundContribution {
+  const today = parseISODate(todayIso);
+  const next = findNextOccurrence(item, today);
+  if (!next) {
+    return { nextOccurrenceDate: null, suggestedMonthlySetAsideCents: null };
+  }
+  const previous = findPreviousOccurrence(item, next) ?? today;
+  const months = Math.max(daysBetween(previous, next) / 30.4368, 1);
+  return {
+    nextOccurrenceDate: formatISODate(next),
+    suggestedMonthlySetAsideCents: Math.round(item.amountCents / months),
+  };
+}

@@ -60,5 +60,9 @@
   "CorrectionAdded": "Correction added",
   "CorrectionDeleted": "Correction deleted",
   "DeleteCorrectionConfirm": "Delete this correction? This can't be undone.",
-  "BalanceCorrectionApplied": "Balance correction"
+  "BalanceCorrectionApplied": "Balance correction",
+  "SinkingFund": "Sinking fund",
+  "NextOccurrence": "Next due",
+  "SuggestedMonthlySetAside": "Suggested monthly set-aside",
+  "SinkingFundTotal": "Sinking fund total: {{amount}}/month across {{count}} items"
 }

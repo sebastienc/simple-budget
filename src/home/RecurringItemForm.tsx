@@ -28,6 +28,7 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
   const [endDate, setEndDate] = useState(initialValue?.endDate ?? '');
   const [semiMonthlyDay1, setSemiMonthlyDay1] = useState(String(initialValue?.semiMonthlyDay1 ?? 15));
   const [semiMonthlyDay2, setSemiMonthlyDay2] = useState(String(initialValue?.semiMonthlyDay2 ?? 31));
+  const [sinkingFund, setSinkingFund] = useState(initialValue?.sinkingFund ?? false);
 
   const isSemiMonthly = frequency === 'semimonthly';
 
@@ -45,6 +46,7 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
           endDate: endDate || null,
           semiMonthlyDay1: isSemiMonthly ? parseInt(semiMonthlyDay1, 10) : null,
           semiMonthlyDay2: isSemiMonthly ? parseInt(semiMonthlyDay2, 10) : null,
+          sinkingFund,
         });
       }}
     >
@@ -142,6 +144,14 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
       <label className="flex flex-col gap-1">
         <span>{t('EndDate')}</span>
         <input className={inputClassName} type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+      </label>
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={sinkingFund}
+          onChange={(event) => setSinkingFund(event.target.checked)}
+        />
+        <span>{t('SinkingFund')}</span>
       </label>
       <div className="flex gap-2">
         <Button type="submit" className={`${buttonClassName} bg-blue-600 text-white hover:bg-blue-500 pressed:bg-blue-700`}>

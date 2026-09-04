@@ -19,6 +19,7 @@ export interface RecurringItemsTable {
   end_date: string | null;
   semi_monthly_day1: number | null;
   semi_monthly_day2: number | null;
+  sinking_fund: ColumnType<number, number | undefined, number>;
   created_at: ColumnType<string, string | undefined, never>;
 }
 
