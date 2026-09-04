@@ -9,8 +9,11 @@
     exists to show, and unlike a wallet or a pie chart it belongs to this app.
 
     Laid out on the macOS Big Sur grid — an 824x824 rounded square centred in a
-    1024 canvas — with the mark optically centred inside it: 53px of clearance
-    left and right, 218px top and bottom.
+    1024 canvas — with the mark optically centred inside it.
+
+    No zero line: it was legible at 1024 but reduced to a smudge at the ~42pt
+    the Dock actually renders, which is where an app icon earns its keep. The
+    colour change alone carries "this is where it goes under".
   -->
   <defs>
     <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
@@ -21,12 +24,9 @@
 
   <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#ground)" />
 
-  <!-- the zero line, quiet enough not to compete with the balance -->
-  <line x1="210" y1="587" x2="838" y2="587" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="10" stroke-linecap="round" stroke-dasharray="26 30" />
-
   <!-- solvent: holds flat, steps down -->
-  <path d="M182 347 H352 V447 H522 V537 H692 V587" fill="none" stroke="#FCFCFD" stroke-width="58" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M182 347 H352 V447 H522 V537 H692 V587" fill="none" stroke="#FCFCFD" stroke-width="68" stroke-linecap="round" stroke-linejoin="round" />
 
   <!-- and the day it goes under -->
-  <path d="M692 587 V677 H842" fill="none" stroke="#F5915A" stroke-width="58" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M692 587 V677 H842" fill="none" stroke="#F5915A" stroke-width="68" stroke-linecap="round" stroke-linejoin="round" />
 </svg>
