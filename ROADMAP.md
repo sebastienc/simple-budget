@@ -17,7 +17,7 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 
 ## From the original spreadsheet
 
-- [x] Property-tax sinking-fund tracker — recurring items can be flagged "sinking fund"; the app computes a suggested monthly set-aside (amount ÷ months between previous/next occurrence) and shows a summed total across flagged items so a lump-sum bill (e.g. school/municipal tax) can be split and pre-funded ahead of its due date. Purely informational — the projection still debits the full lump sum on its actual due date.
+- [x] Property-tax sinking-fund tracker — recurring items can be flagged "sinking fund". The app amortizes each one over its own recurrence period (a yearly bill ÷ 12, quarterly ÷ 3) to give a stable monthly cost, and the hero shows that alongside a catch-up figure — what it would take starting today, given nothing has been set aside yet. The gap between the two is the "you're behind" signal. Purely informational: the projection still debits the full lump sum on its actual due date.
 
 ## Dropped
 
