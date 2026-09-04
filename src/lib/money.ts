@@ -14,6 +14,14 @@ export function formatCents(cents: number): string {
   }).format(cents / 100);
 }
 
+/**
+ * Whole units, no decimal places — for chart axis ticks, where cents are noise
+ * and every extra glyph competes with the data.
+ */
+export function formatCentsAxis(cents: number): string {
+  return new Intl.NumberFormat(i18next.language || 'en', { maximumFractionDigits: 0 }).format(cents / 100);
+}
+
 /** Same as {@link formatCents}, but always carries an explicit + or −. */
 export function formatCentsSigned(cents: number): string {
   const sign = cents < 0 ? '−' : '+';

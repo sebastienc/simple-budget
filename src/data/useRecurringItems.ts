@@ -31,7 +31,7 @@ export interface RecurringItemInput {
   sinkingFund?: boolean;
 }
 
-export function useRecurringItems(accountId: number | null) {
+export function useRecurringItems(accountId: number | null, refreshToken: number = 0) {
   const [items, setItems] = useState<RecurringItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,7 +45,10 @@ export function useRecurringItems(accountId: number | null) {
     const response = await fetch(`/api/accounts/${accountId}/recurring-items`);
     setItems(await response.json());
     setIsLoading(false);
-  }, [accountId]);
+    // refreshToken lets a caller that doesn't own the mutations (the hero's
+    // sinking-fund total) re-read after the panel below it changes something.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId, refreshToken]);
 
   useEffect(() => {
     refresh();

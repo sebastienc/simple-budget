@@ -1,18 +1,24 @@
-import React, { useState } from 'react';
-import { Button } from 'react-aria-components';
+import React, { useMemo, useState } from 'react';
+import { addDays } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useToaster } from '@/toast/useToaster';
-import PageLayout from '../components/layouts/PageLayout';
+import PageLayout from '@/components/layouts/PageLayout';
+import Button from '@/components/ui/Button';
+import BalanceChart from '@/components/charts/BalanceChart';
 import { useAccounts } from '@/data/useAccounts';
+import { useProjection } from '@/data/useProjection';
+import { useRecurringItems } from '@/data/useRecurringItems';
+import { summarizeProjection } from '@/lib/projection';
+import { todayISO, toISODate } from '@/lib/dates';
+import AccountSwitcher from './AccountSwitcher';
+import AccountHero from './AccountHero';
+import RangeControl from './RangeControl';
 import AccountSetup from './AccountSetup';
 import AccountSettingsForm from './AccountSettingsForm';
 import RecurringItemsPanel from './RecurringItemsPanel';
 import BalanceCheckpointsPanel from './BalanceCheckpointsPanel';
 import ProjectionTable from './ProjectionTable';
 import NetWorthTable from './NetWorthTable';
-
-const linkButtonClassName =
-  'inline-flex cursor-default items-center justify-center rounded-md px-2 py-1 text-sm text-blue-700 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-blue-600 dark:text-blue-400';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -22,79 +28,66 @@ const Home: React.FC = () => {
   const [isViewingNetWorth, setIsViewingNetWorth] = useState(false);
   const [projectionRefreshToken, setProjectionRefreshToken] = useState(0);
   const [isEditingAccount, setIsEditingAccount] = useState(false);
-
-  if (isLoading) {
-    return <PageLayout pageTitle={t('Home')}>{null}</PageLayout>;
-  }
+  const [from, setFrom] = useState(todayISO);
+  const [to, setTo] = useState(() => toISODate(addDays(new Date(), 90)));
 
   const currentAccount = accounts.find((account) => account.id === selectedAccountId) ?? accounts[0] ?? null;
+  const accountId = currentAccount?.startingBalanceDate ? currentAccount.id : null;
 
-  const accountSwitcher = accounts.length > 1 && (
-    <div className="flex gap-2 p-4 pb-0">
-      {accounts.map((account) => (
-        <Button
-          key={account.id}
-          onPress={() => {
-            setSelectedAccountId(account.id);
-            setIsViewingNetWorth(false);
-          }}
-          className={`cursor-default rounded-md px-3 py-1.5 text-sm outline-hidden ${
-            !isViewingNetWorth && account.id === currentAccount?.id
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-900 dark:bg-zinc-700 dark:text-gray-100'
-          }`}
-        >
-          {account.name}
-        </Button>
-      ))}
-      <Button
-        onPress={() => setIsViewingNetWorth(true)}
-        className={`cursor-default rounded-md px-3 py-1.5 text-sm outline-hidden ${
-          isViewingNetWorth ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900 dark:bg-zinc-700 dark:text-gray-100'
-        }`}
-      >
-        {t('AllAccounts')}
-      </Button>
-    </div>
+  // Fetched once here and shared by the hero, the chart and the ledger, rather
+  // than each of them opening its own request for the same days.
+  const { days, error } = useProjection(accountId, from, to, projectionRefreshToken);
+  const { items } = useRecurringItems(accountId, projectionRefreshToken);
+
+  const summary = useMemo(() => summarizeProjection(days), [days]);
+  const chartPoints = useMemo(() => days.map((day) => ({ date: day.date, valueCents: day.balanceCents })), [days]);
+
+  // Set-aside figures carry the sign of the item they came from (a tax bill is
+  // an outflow), but "set aside X per month" is a magnitude — summing the raw
+  // values would ask the user to put aside a negative amount.
+  const sinkingFundTotalCents = useMemo(() => {
+    const contributing = items.filter((item) => item.sinkingFund && item.suggestedMonthlySetAsideCents !== null);
+    return contributing.length > 0 ? contributing.reduce((sum, item) => sum + Math.abs(item.suggestedMonthlySetAsideCents ?? 0), 0) : null;
+  }, [items]);
+
+  const bumpProjection = () => setProjectionRefreshToken((token) => token + 1);
+
+  const toolbar = (
+    <AccountSwitcher
+      accounts={accounts}
+      selectedAccountId={currentAccount?.id ?? null}
+      isViewingNetWorth={isViewingNetWorth}
+      onSelectAccount={(id) => {
+        setSelectedAccountId(id);
+        setIsViewingNetWorth(false);
+      }}
+      onSelectNetWorth={() => setIsViewingNetWorth(true)}
+    />
   );
 
+  if (isLoading) {
+    return <PageLayout>{null}</PageLayout>;
+  }
+
   if (isViewingNetWorth) {
-    return (
-      <PageLayout pageTitle={t('Home')}>
-        {accountSwitcher}
-        <NetWorthTable />
-      </PageLayout>
-    );
+    return <PageLayout toolbar={toolbar}>{<NetWorthTable />}</PageLayout>;
   }
 
   if (!currentAccount || !currentAccount.startingBalanceDate) {
     return (
-      <PageLayout pageTitle={t('Home')}>
-        {accountSwitcher}
+      <PageLayout toolbar={toolbar}>
         <AccountSetup
           account={currentAccount}
           onCreateAccount={createAccount}
-          onSetStartingBalance={(accountId, cents, date) =>
-            updateAccount(accountId, { startingBalanceCents: cents, startingBalanceDate: date })
-          }
+          onSetStartingBalance={(id, cents, date) => updateAccount(id, { startingBalanceCents: cents, startingBalanceDate: date })}
         />
       </PageLayout>
     );
   }
 
-  return (
-    <PageLayout pageTitle={t('Home')}>
-      {accountSwitcher}
-      <div className="flex items-center justify-between p-4 pb-0">
-        <h2 className="text-lg font-semibold">{currentAccount.name}</h2>
-        {!isEditingAccount && (
-          <Button className={linkButtonClassName} onPress={() => setIsEditingAccount(true)}>
-            {t('EditAccount')}
-          </Button>
-        )}
-      </div>
-
-      {isEditingAccount ? (
+  if (isEditingAccount) {
+    return (
+      <PageLayout toolbar={toolbar}>
         <AccountSettingsForm
           account={currentAccount}
           onSave={async (patch) => {
@@ -109,19 +102,29 @@ const Home: React.FC = () => {
           }}
           onCancel={() => setIsEditingAccount(false)}
         />
-      ) : (
-        <>
-          <BalanceCheckpointsPanel
-            accountId={currentAccount.id}
-            onCheckpointsChanged={() => setProjectionRefreshToken((token) => token + 1)}
-          />
-          <RecurringItemsPanel
-            accountId={currentAccount.id}
-            onItemsChanged={() => setProjectionRefreshToken((token) => token + 1)}
-          />
-          <ProjectionTable accountId={currentAccount.id} refreshToken={projectionRefreshToken} />
-        </>
-      )}
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout toolbar={toolbar}>
+      <div className="flex items-start justify-between gap-6">
+        <AccountHero accountName={currentAccount.name} summary={summary} sinkingFundTotalCents={sinkingFundTotalCents} />
+        <Button variant="link" size="sm" className="flex-none" onPress={() => setIsEditingAccount(true)}>
+          {t('EditAccount')}
+        </Button>
+      </div>
+
+      {error === 'unknown' && <p className="text-sm text-warn">{t('CouldNotLoadProjection')}</p>}
+
+      <div className="flex flex-col gap-3">
+        <RangeControl from={from} to={to} onFromChange={setFrom} onToChange={setTo} />
+        <BalanceChart points={chartPoints} ariaLabel={t('Projection')} />
+      </div>
+
+      <RecurringItemsPanel accountId={currentAccount.id} onItemsChanged={bumpProjection} />
+      <ProjectionTable days={days} />
+      <BalanceCheckpointsPanel accountId={currentAccount.id} onCheckpointsChanged={bumpProjection} />
     </PageLayout>
   );
 };

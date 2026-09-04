@@ -1,22 +1,18 @@
 import React from 'react';
-import Titlebar from '../titlebar/Titlebar';
+import AppBar from './AppBar';
 
 export interface PageLayoutProps {
-  pageTitle: string;
+  toolbar?: React.ReactNode;
   children: React.ReactNode | React.ReactNode[];
 }
 
-const PageLayout: React.FC<PageLayoutProps> = ({ pageTitle, children }) => {
-  return (
-    <div className="flex h-full w-full flex-col bg-white text-gray-900 dark:bg-zinc-900 dark:text-gray-100">
-      <Titlebar pageTitle={pageTitle} />
-      <div className="flex w-full flex-auto flex-row">
-        <div id="content" className="flex h-full w-full flex-none flex-col">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
+const PageLayout: React.FC<PageLayoutProps> = ({ toolbar, children }) => (
+  <div className="flex h-full w-full flex-col bg-surface text-ink">
+    <AppBar toolbar={toolbar} />
+    <main className="flex-auto overflow-y-auto">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-8">{children}</div>
+    </main>
+  </div>
+);
 
 export default PageLayout;

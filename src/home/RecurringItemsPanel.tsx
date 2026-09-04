@@ -52,7 +52,8 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
   );
 
   const sinkingFundItems = items.filter((item) => item.sinkingFund && item.suggestedMonthlySetAsideCents !== null);
-  const sinkingFundTotalCents = sinkingFundItems.reduce((sum, item) => sum + (item.suggestedMonthlySetAsideCents ?? 0), 0);
+  // A set-aside is a magnitude, not a signed flow — see the note in Home.tsx.
+  const sinkingFundTotalCents = sinkingFundItems.reduce((sum, item) => sum + Math.abs(item.suggestedMonthlySetAsideCents ?? 0), 0);
 
   const handleCreate = async (input: RecurringItemInput) => {
     await createItem(input);
@@ -169,7 +170,7 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
                     <>
                       {' · '}
                       {t('NextOccurrence')}: {item.nextOccurrenceDate} · {t('SuggestedMonthlySetAside')}:{' '}
-                      {(item.suggestedMonthlySetAsideCents / 100).toFixed(2)}
+                      {(Math.abs(item.suggestedMonthlySetAsideCents) / 100).toFixed(2)}
                     </>
                   )}
                 </span>
