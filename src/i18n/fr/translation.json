@@ -53,5 +53,11 @@
   "SortBy": "Trier par",
   "SortByName": "Nom",
   "SortByAmount": "Montant",
-  "SortByFrequency": "Récurrence"
+  "SortByFrequency": "Récurrence",
+  "BalanceCorrections": "Corrections de solde",
+  "AddCorrection": "Ajouter une correction",
+  "NoCorrections": "Aucune correction enregistrée",
+  "CorrectionAdded": "Correction ajoutée",
+  "CorrectionDeleted": "Correction supprimée",
+  "DeleteCorrectionConfirm": "Supprimer cette correction? Cette action est irréversible."
 }

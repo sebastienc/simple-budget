@@ -22,7 +22,16 @@ export interface RecurringItemsTable {
   created_at: ColumnType<string, string | undefined, never>;
 }
 
+export interface BalanceCheckpointsTable {
+  id: Generated<number>;
+  account_id: number;
+  date: string;
+  balance_cents: number;
+  created_at: ColumnType<string, string | undefined, never>;
+}
+
 export interface Database {
   accounts: AccountsTable;
   recurring_items: RecurringItemsTable;
+  balance_checkpoints: BalanceCheckpointsTable;
 }

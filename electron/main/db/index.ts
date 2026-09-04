@@ -8,11 +8,13 @@ import type { Database } from './schema';
 import * as migration001Init from './migrations/001_init';
 import * as migration002RecurringItems from './migrations/002_recurring_items';
 import * as migration003SemimonthlyRecurringItems from './migrations/003_semimonthly_recurring_items';
+import * as migration004BalanceCheckpoints from './migrations/004_balance_checkpoints';
 
 const migrations: Record<string, Migration> = {
   '001_init': migration001Init,
   '002_recurring_items': migration002RecurringItems,
   '003_semimonthly_recurring_items': migration003SemimonthlyRecurringItems,
+  '004_balance_checkpoints': migration004BalanceCheckpoints,
 };
 
 class InlineMigrationProvider implements MigrationProvider {

@@ -27,6 +27,7 @@ export const accountsQueries = {
       .transaction()
       .execute(async (trx) => {
         await trx.deleteFrom('recurring_items').where('account_id', '=', id).execute();
+        await trx.deleteFrom('balance_checkpoints').where('account_id', '=', id).execute();
         await trx.deleteFrom('accounts').where('id', '=', id).execute();
       }),
 };
@@ -91,4 +92,18 @@ export const recurringItemsQueries = {
       .returningAll()
       .executeTakeFirstOrThrow(),
   delete: (id: number) => getDb().deleteFrom('recurring_items').where('id', '=', id).execute(),
+};
+
+export const balanceCheckpointsQueries = {
+  list: (accountId: number) =>
+    getDb().selectFrom('balance_checkpoints').selectAll().where('account_id', '=', accountId).orderBy('date').execute(),
+  get: (id: number) => getDb().selectFrom('balance_checkpoints').selectAll().where('id', '=', id).executeTakeFirst(),
+  upsert: (accountId: number, date: string, balanceCents: number) =>
+    getDb()
+      .insertInto('balance_checkpoints')
+      .values({ account_id: accountId, date, balance_cents: balanceCents })
+      .onConflict((oc) => oc.columns(['account_id', 'date']).doUpdateSet({ balance_cents: balanceCents }))
+      .returningAll()
+      .executeTakeFirstOrThrow(),
+  delete: (id: number) => getDb().deleteFrom('balance_checkpoints').where('id', '=', id).execute(),
 };

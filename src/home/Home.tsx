@@ -7,6 +7,7 @@ import { useAccounts } from '@/data/useAccounts';
 import AccountSetup from './AccountSetup';
 import AccountSettingsForm from './AccountSettingsForm';
 import RecurringItemsPanel from './RecurringItemsPanel';
+import BalanceCheckpointsPanel from './BalanceCheckpointsPanel';
 import ProjectionTable from './ProjectionTable';
 import NetWorthTable from './NetWorthTable';
 
@@ -110,6 +111,10 @@ const Home: React.FC = () => {
         />
       ) : (
         <>
+          <BalanceCheckpointsPanel
+            accountId={currentAccount.id}
+            onCheckpointsChanged={() => setProjectionRefreshToken((token) => token + 1)}
+          />
           <RecurringItemsPanel
             accountId={currentAccount.id}
             onItemsChanged={() => setProjectionRefreshToken((token) => token + 1)}

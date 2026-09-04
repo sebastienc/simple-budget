@@ -3,9 +3,9 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { writeFile, unlink } from 'fs/promises';
 import SqliteDatabase from 'better-sqlite3';
-import { accountsQueries, recurringItemsQueries } from '../db/queries';
-import { toAccountJson, toRecurringItemJson } from './mappers';
-import { projectBalance, sumProjections, type Frequency, type RecurringItemInput } from '../projection';
+import { accountsQueries, recurringItemsQueries, balanceCheckpointsQueries } from '../db/queries';
+import { toAccountJson, toRecurringItemJson, toBalanceCheckpointJson } from './mappers';
+import { projectBalance, sumProjections, mergeCheckpoints, type Frequency, type RecurringItemInput } from '../projection';
 import { backupDbTo, replaceDbWith } from '../db';
 
 export const apiRouter = Router();
@@ -219,6 +219,52 @@ apiRouter.delete('/recurring-items/:id', async (req, res) => {
   res.status(204).send();
 });
 
+apiRouter.get('/accounts/:id/checkpoints', async (req, res) => {
+  const id = parseId(req.params.id);
+  const account = id === null ? undefined : await accountsQueries.get(id);
+  if (!account) {
+    res.status(404).json({ error: 'account not found' });
+    return;
+  }
+  res.json((await balanceCheckpointsQueries.list(id as number)).map(toBalanceCheckpointJson));
+});
+
+apiRouter.post('/accounts/:id/checkpoints', async (req, res) => {
+  const id = parseId(req.params.id);
+  const account = id === null ? undefined : await accountsQueries.get(id);
+  if (!account) {
+    res.status(404).json({ error: 'account not found' });
+    return;
+  }
+
+  const { date, balanceCents } = req.body ?? {};
+  if (!isValidDateString(date)) {
+    res.status(400).json({ error: 'date must be YYYY-MM-DD' });
+    return;
+  }
+  if (typeof balanceCents !== 'number') {
+    res.status(400).json({ error: 'balanceCents must be a number' });
+    return;
+  }
+  if (!account.starting_balance_date || date < account.starting_balance_date) {
+    res.status(400).json({ error: 'date must be on or after the account starting balance date' });
+    return;
+  }
+
+  res.json(toBalanceCheckpointJson(await balanceCheckpointsQueries.upsert(id as number, date, balanceCents)));
+});
+
+apiRouter.delete('/checkpoints/:id', async (req, res) => {
+  const id = parseId(req.params.id);
+  const checkpoint = id === null ? undefined : await balanceCheckpointsQueries.get(id);
+  if (!checkpoint) {
+    res.status(404).json({ error: 'checkpoint not found' });
+    return;
+  }
+  await balanceCheckpointsQueries.delete(id as number);
+  res.status(204).send();
+});
+
 apiRouter.get('/accounts/:id/projection', async (req, res) => {
   const id = parseId(req.params.id);
   const account = id === null ? undefined : await accountsQueries.get(id);
@@ -253,15 +299,16 @@ apiRouter.get('/accounts/:id/projection', async (req, res) => {
     semiMonthlyDay2: row.semi_monthly_day2,
   }));
 
-  res.json(
-    projectBalance({
-      startingBalanceCents: account.starting_balance_cents,
-      startingBalanceDate: account.starting_balance_date,
-      items,
-      from,
-      to,
-    }),
+  const explicitCheckpoints = (await balanceCheckpointsQueries.list(id as number)).map((row) => ({
+    date: row.date,
+    balanceCents: row.balance_cents,
+  }));
+  const checkpoints = mergeCheckpoints(
+    { date: account.starting_balance_date, balanceCents: account.starting_balance_cents },
+    explicitCheckpoints,
   );
+
+  res.json(projectBalance({ checkpoints, items, from, to }));
 });
 
 apiRouter.get('/net-worth', async (req, res) => {
@@ -307,13 +354,15 @@ apiRouter.get('/net-worth', async (req, res) => {
         semiMonthlyDay1: row.semi_monthly_day1,
         semiMonthlyDay2: row.semi_monthly_day2,
       }));
-      return projectBalance({
-        startingBalanceCents: account.starting_balance_cents,
-        startingBalanceDate: account.starting_balance_date!,
-        items,
-        from: effectiveFrom,
-        to,
-      });
+      const explicitCheckpoints = (await balanceCheckpointsQueries.list(account.id)).map((row) => ({
+        date: row.date,
+        balanceCents: row.balance_cents,
+      }));
+      const checkpoints = mergeCheckpoints(
+        { date: account.starting_balance_date!, balanceCents: account.starting_balance_cents },
+        explicitCheckpoints,
+      );
+      return projectBalance({ checkpoints, items, from: effectiveFrom, to });
     }),
   );
 

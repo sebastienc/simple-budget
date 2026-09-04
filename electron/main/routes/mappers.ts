@@ -1,5 +1,5 @@
 import type { Selectable } from 'kysely';
-import type { AccountsTable, RecurringItemsTable } from '../db/schema';
+import type { AccountsTable, BalanceCheckpointsTable, RecurringItemsTable } from '../db/schema';
 
 export function toAccountJson(row: Selectable<AccountsTable>) {
   return {
@@ -23,6 +23,16 @@ export function toRecurringItemJson(row: Selectable<RecurringItemsTable>) {
     endDate: row.end_date,
     semiMonthlyDay1: row.semi_monthly_day1,
     semiMonthlyDay2: row.semi_monthly_day2,
+    createdAt: row.created_at,
+  };
+}
+
+export function toBalanceCheckpointJson(row: Selectable<BalanceCheckpointsTable>) {
+  return {
+    id: row.id,
+    accountId: row.account_id,
+    date: row.date,
+    balanceCents: row.balance_cents,
     createdAt: row.created_at,
   };
 }

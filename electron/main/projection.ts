@@ -19,12 +19,28 @@ export interface ProjectionDay {
   balanceCents: number;
 }
 
+export interface BalanceCheckpoint {
+  date: string;
+  balanceCents: number;
+}
+
 export interface ProjectBalanceParams {
-  startingBalanceCents: number;
-  startingBalanceDate: string;
+  checkpoints: BalanceCheckpoint[];
   items: RecurringItemInput[];
   from: string;
   to: string;
+}
+
+// Merges the account's implicit starting balance with any explicit
+// reconciliation checkpoints, an explicit one winning if it shares the exact
+// same date as the starting balance.
+export function mergeCheckpoints(starting: BalanceCheckpoint, additional: BalanceCheckpoint[]): BalanceCheckpoint[] {
+  const byDate = new Map<string, BalanceCheckpoint>();
+  byDate.set(starting.date, starting);
+  for (const checkpoint of additional) {
+    byDate.set(checkpoint.date, checkpoint);
+  }
+  return [...byDate.values()];
 }
 
 function parseISODate(date: string): Date {
@@ -122,7 +138,8 @@ function occursOn(item: RecurringItemInput, date: Date): boolean {
 }
 
 export function projectBalance(params: ProjectBalanceParams): ProjectionDay[] {
-  const anchor = parseISODate(params.startingBalanceDate);
+  const sortedCheckpoints = [...params.checkpoints].sort((a, b) => a.date.localeCompare(b.date));
+  const anchor = parseISODate(sortedCheckpoints[0].date);
   const requestedFrom = parseISODate(params.from);
   const to = parseISODate(params.to);
   const outputFrom = requestedFrom.getTime() < anchor.getTime() ? anchor : requestedFrom;
@@ -133,11 +150,23 @@ export function projectBalance(params: ProjectBalanceParams): ProjectionDay[] {
 
   // Walk every day from the anchor (not just from `outputFrom`) so the running
   // balance correctly accounts for days before the requested window, then only
-  // emit rows from `outputFrom` onward.
+  // emit rows from `outputFrom` onward. Whenever the cursor reaches a later
+  // checkpoint's date, snap the running balance to it — discarding any
+  // accumulated recurring-item drift, since a checkpoint represents a known
+  // real value that should override the projection from that point forward.
   const days: ProjectionDay[] = [];
-  let balanceCents = params.startingBalanceCents;
+  let balanceCents = sortedCheckpoints[0].balanceCents;
+  let nextCheckpointIndex = 1;
 
   for (let cursor = new Date(anchor); cursor.getTime() <= to.getTime(); cursor = addDays(cursor, 1)) {
+    while (
+      nextCheckpointIndex < sortedCheckpoints.length &&
+      parseISODate(sortedCheckpoints[nextCheckpointIndex].date).getTime() <= cursor.getTime()
+    ) {
+      balanceCents = sortedCheckpoints[nextCheckpointIndex].balanceCents;
+      nextCheckpointIndex += 1;
+    }
+
     const items = params.items
       .filter((item) => occursOn(item, cursor))
       .map((item) => ({ id: item.id, name: item.name, amountCents: item.amountCents }));

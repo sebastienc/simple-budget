@@ -53,5 +53,11 @@
   "SortBy": "Sort by",
   "SortByName": "Name",
   "SortByAmount": "Amount",
-  "SortByFrequency": "Frequency"
+  "SortByFrequency": "Frequency",
+  "BalanceCorrections": "Balance corrections",
+  "AddCorrection": "Add correction",
+  "NoCorrections": "No corrections recorded yet",
+  "CorrectionAdded": "Correction added",
+  "CorrectionDeleted": "Correction deleted",
+  "DeleteCorrectionConfirm": "Delete this correction? This can't be undone."
 }
