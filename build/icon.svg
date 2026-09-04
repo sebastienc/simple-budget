@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!--
+    Simple Budget app icon. Source for build/icon.png — regenerate with
+    ./build/render-icon.sh after editing.
+
+    The mark is the app's own chart language: a projected balance holds flat and
+    steps down on the days money leaves, then crosses the zero line and turns
+    warn-orange exactly where the account goes under. It's the idea the product
+    exists to show, and unlike a wallet or a pie chart it belongs to this app.
+
+    Laid out on the macOS Big Sur grid — an 824x824 rounded square centred in a
+    1024 canvas — with the mark optically centred inside it: 53px of clearance
+    left and right, 218px top and bottom.
+  -->
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17A0AC" />
+      <stop offset="1" stop-color="#0A5F68" />
+    </linearGradient>
+  </defs>
+
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#ground)" />
+
+  <!-- the zero line, quiet enough not to compete with the balance -->
+  <line x1="210" y1="587" x2="838" y2="587" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="10" stroke-linecap="round" stroke-dasharray="26 30" />
+
+  <!-- solvent: holds flat, steps down -->
+  <path d="M182 347 H352 V447 H522 V537 H692 V587" fill="none" stroke="#FCFCFD" stroke-width="58" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- and the day it goes under -->
+  <path d="M692 587 V677 H842" fill="none" stroke="#F5915A" stroke-width="58" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
