@@ -16,5 +16,6 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 
 ## Deferred (from the original spreadsheet, lower priority than the above)
 
-- [ ] Subscription/recurring-charge verification checklist
 - [x] Property-tax sinking-fund tracker — recurring items can be flagged "sinking fund"; the app computes a suggested monthly set-aside (amount ÷ months between previous/next occurrence) and shows a summed total across flagged items so a lump-sum bill (e.g. school/municipal tax) can be split and pre-funded ahead of its due date. Purely informational — the projection still debits the full lump sum on its actual due date.
+
+Dropped: subscription/recurring-charge verification checklist. In the original spreadsheet this was a list of which websites had a credit card on file, to make card-expiry renewals easier — not a cash-flow concern, and out of scope for this app now that credit card balances are just paid off a few times a month via recurring items.
