@@ -1,12 +1,22 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import PageLayout from '@/components/layouts/PageLayout';
+import Button from '@/components/ui/Button';
 
 const Error404Page: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
   return (
-      <div className='flex flex-auto w-full h-full flex-col gap-2'>
-        <div className='flex justify-center items-center p-2'>logo</div>
-        <div className='flex justify-center items-center'>Page was not found</div>
+    <PageLayout>
+      <div className="flex flex-col items-start gap-4 py-12">
+        <p className="font-mono text-sm text-ink-3">404</p>
+        <h1 className="font-display text-3xl font-semibold text-ink">{t('PageNotFound')}</h1>
+        <Button onPress={() => navigate('/home')}>{t('BackToHome')}</Button>
       </div>
-  )
+    </PageLayout>
+  );
 };
 
-export default Error404Page
+export default Error404Page;

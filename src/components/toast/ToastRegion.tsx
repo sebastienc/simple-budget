@@ -8,7 +8,7 @@ const ToastRegion: React.FC = () => {
 
   return (
     <ReactAriaToastRegion
-      className="fixed right-4 bottom-4 flex flex-col-reverse gap-2 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
+      className="fixed right-4 bottom-4 z-20 flex flex-col-reverse gap-2 rounded-lg outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
       queue={queue}
     >
       {({ toast }) => <Toast toast={toast} />}

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { Button } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
+import Button from '@/components/ui/Button';
+import TextField from '@/components/ui/TextField';
+import { parseAmountToCents } from '@/lib/money';
+import { todayISO } from '@/lib/dates';
 import type { Account } from '@/data/useAccounts';
 
 export interface AccountSetupProps {
@@ -9,32 +12,23 @@ export interface AccountSetupProps {
   onSetStartingBalance: (accountId: number, cents: number, date: string) => Promise<void>;
 }
 
-const buttonClassName =
-  'inline-flex cursor-default items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white outline-hidden transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-600 pressed:bg-blue-700';
-
-const inputClassName =
-  'rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-hidden focus-visible:ring-2 focus-visible:ring-blue-600 dark:border-zinc-600 dark:bg-zinc-900 dark:text-gray-100';
-
 const AccountSetup: React.FC<AccountSetupProps> = ({ account, onCreateAccount, onSetStartingBalance }) => {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [balance, setBalance] = useState('');
-  const [asOf, setAsOf] = useState(() => new Date().toISOString().slice(0, 10));
+  const [asOf, setAsOf] = useState(todayISO);
 
   if (!account) {
     return (
       <form
-        className="flex max-w-sm flex-col gap-3 p-4"
+        className="flex max-w-sm flex-col gap-4"
         onSubmit={async (event) => {
           event.preventDefault();
           await onCreateAccount(name);
         }}
       >
-        <label className="flex flex-col gap-1">
-          <span>{t('AccountName')}</span>
-          <input className={inputClassName} value={name} onChange={(event) => setName(event.target.value)} required />
-        </label>
-        <Button type="submit" className={buttonClassName}>
+        <TextField label={t('AccountName')} value={name} onChange={setName} isRequired />
+        <Button type="submit" className="self-start">
           {t('CreateAccount')}
         </Button>
       </form>
@@ -43,29 +37,16 @@ const AccountSetup: React.FC<AccountSetupProps> = ({ account, onCreateAccount, o
 
   return (
     <form
-      className="flex max-w-sm flex-col gap-3 p-4"
+      className="flex max-w-sm flex-col gap-4"
       onSubmit={async (event) => {
         event.preventDefault();
-        const cents = Math.round(parseFloat(balance || '0') * 100);
-        await onSetStartingBalance(account.id, cents, asOf);
+        await onSetStartingBalance(account.id, parseAmountToCents(balance), asOf);
       }}
     >
-      <label className="flex flex-col gap-1">
-        <span>{t('StartingBalance')}</span>
-        <input
-          className={inputClassName}
-          type="number"
-          step="0.01"
-          value={balance}
-          onChange={(event) => setBalance(event.target.value)}
-          required
-        />
-      </label>
-      <label className="flex flex-col gap-1">
-        <span>{t('StartingBalanceDate')}</span>
-        <input className={inputClassName} type="date" value={asOf} onChange={(event) => setAsOf(event.target.value)} required />
-      </label>
-      <Button type="submit" className={buttonClassName}>
+      <p className="text-sm text-ink-2">{t('StartingBalanceNotSet')}</p>
+      <TextField label={t('StartingBalance')} type="number" step="0.01" value={balance} onChange={setBalance} isRequired />
+      <TextField label={t('StartingBalanceDate')} type="date" value={asOf} onChange={setAsOf} isRequired />
+      <Button type="submit" className="self-start">
         {t('SetStartingBalance')}
       </Button>
     </form>
