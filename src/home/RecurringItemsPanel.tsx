@@ -39,6 +39,9 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
   };
 
   const handleDelete = async (item: RecurringItem) => {
+    if (!window.confirm(t('DeleteRecurringItemConfirm', { name: item.name }))) {
+      return;
+    }
     await deleteItem(item.id);
     addToast(t('RecurringItemDeleted'));
     onItemsChanged?.();

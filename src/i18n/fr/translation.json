@@ -43,5 +43,6 @@
   "DeleteAccount": "Supprimer le compte",
   "DeleteAccountConfirm": "Ceci supprimera définitivement ce compte et tous ses éléments récurrents. Continuer?",
   "AccountUpdated": "Compte mis à jour",
-  "AccountDeleted": "Compte supprimé"
+  "AccountDeleted": "Compte supprimé",
+  "DeleteRecurringItemConfirm": "Supprimer « {{name}} »? Cette action est irréversible."
 }

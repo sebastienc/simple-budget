@@ -43,5 +43,6 @@
   "DeleteAccount": "Delete account",
   "DeleteAccountConfirm": "This will permanently delete this account and all its recurring items. Continue?",
   "AccountUpdated": "Account updated",
-  "AccountDeleted": "Account deleted"
+  "AccountDeleted": "Account deleted",
+  "DeleteRecurringItemConfirm": "Delete \"{{name}}\"? This can't be undone."
 }
