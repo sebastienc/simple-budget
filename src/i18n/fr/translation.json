@@ -47,5 +47,11 @@
   "DeleteRecurringItemConfirm": "Supprimer « {{name}} »? Cette action est irréversible.",
   "AllAccounts": "Tous les comptes",
   "NetWorth": "Valeur nette",
-  "ExcludesAccounts": "Exclut : {{names}}"
+  "ExcludesAccounts": "Exclut : {{names}}",
+  "SearchRecurringItems": "Rechercher des éléments récurrents…",
+  "NoRecurringItemsMatch": "Aucun élément récurrent ne correspond à votre recherche",
+  "SortBy": "Trier par",
+  "SortByName": "Nom",
+  "SortByAmount": "Montant",
+  "SortByFrequency": "Récurrence"
 }

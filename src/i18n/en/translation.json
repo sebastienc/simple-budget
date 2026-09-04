@@ -47,5 +47,11 @@
   "DeleteRecurringItemConfirm": "Delete \"{{name}}\"? This can't be undone.",
   "AllAccounts": "All accounts",
   "NetWorth": "Net worth",
-  "ExcludesAccounts": "Excludes: {{names}}"
+  "ExcludesAccounts": "Excludes: {{names}}",
+  "SearchRecurringItems": "Search recurring items…",
+  "NoRecurringItemsMatch": "No recurring items match your search",
+  "SortBy": "Sort by",
+  "SortByName": "Name",
+  "SortByAmount": "Amount",
+  "SortByFrequency": "Frequency"
 }
