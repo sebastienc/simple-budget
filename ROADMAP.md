@@ -12,7 +12,7 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 
 ## Cleanup
 
-- [ ] Remove or repurpose the hamburger menu (top-left, "New…/Open…/Save/Save as…/Print…") — leftover template scaffolding, not wired to anything
+- [x] Remove or repurpose the hamburger menu (top-left, "New…/Open…/Save/Save as…/Print…") — leftover template scaffolding, not wired to anything
 
 ## Deferred (from the original spreadsheet, lower priority than the above)
 
