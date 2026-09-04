@@ -38,3 +38,7 @@ npm run dist       # package a distributable (electron-builder, macOS .dmg)
 
 - `electron/main/` — Electron main process: `index.ts` (app lifecycle), `server.ts` (the local Express server), `db/` (Kysely schema, migrations, queries), `routes/` (API handlers), `projection.ts` (the recurrence/cash-flow algorithm).
 - `src/` — the React renderer. `src/home/` holds the dashboard; `src/data/` holds the `fetch`-based hooks that talk to the API.
+
+## Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) for missing features and known gaps.
