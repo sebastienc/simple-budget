@@ -88,5 +88,6 @@
   "SomethingWentWrong": "Something went wrong.",
   "StartingBalanceNotSet": "Set a starting balance to see a projection.",
   "CouldNotLoadProjection": "The projection couldn't be loaded.",
-  "LowestPoint": "Lowest point"
+  "LowestPoint": "Lowest point",
+  "GoesNegativeOn": "Balance goes negative {{date}}"
 }

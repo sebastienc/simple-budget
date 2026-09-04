@@ -66,6 +66,19 @@
 }
 
 @layer base {
+  /*
+   * Tells the browser which way the theme runs, so native UI it draws for us —
+   * scrollbars, date pickers, form controls — follows along instead of
+   * rendering a bright white scrollbar down a dark page.
+   */
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
   html,
   body,
   #root {

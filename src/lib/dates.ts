@@ -1,4 +1,14 @@
 import { format } from 'date-fns';
+import { enUS, frCA } from 'date-fns/locale';
+import i18next from 'i18next';
+
+/**
+ * date-fns formats in English unless handed a locale, so every display format
+ * has to pass one or a French user gets "le 4 September 2026".
+ */
+function activeLocale() {
+  return (i18next.language || 'en').startsWith('fr') ? frCA : enUS;
+}
 
 /**
  * Today as an ISO "YYYY-MM-DD" calendar date, in the user's *local* zone.
@@ -11,7 +21,10 @@ export function todayISO(): string {
   return toISODate(new Date());
 }
 
-/** A `Date` as an ISO "YYYY-MM-DD" calendar date, in the user's local zone. */
+/**
+ * A `Date` as an ISO "YYYY-MM-DD" calendar date, in the user's local zone.
+ * No locale: this is a machine format for the API, not display text.
+ */
 export function toISODate(date: Date): string {
   return format(date, 'yyyy-MM-dd');
 }
@@ -23,5 +36,5 @@ export function toISODate(date: Date): string {
  */
 export function formatISODate(isoDate: string, pattern: string): string {
   const [year, month, day] = isoDate.split('-').map(Number);
-  return format(new Date(year, month - 1, day), pattern);
+  return format(new Date(year, month - 1, day), pattern, { locale: activeLocale() });
 }

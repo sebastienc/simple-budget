@@ -18,6 +18,7 @@ import AccountSettingsForm from './AccountSettingsForm';
 import RecurringItemsPanel from './RecurringItemsPanel';
 import BalanceCheckpointsPanel from './BalanceCheckpointsPanel';
 import ProjectionTable from './ProjectionTable';
+import UpcomingPanel from './UpcomingPanel';
 import NetWorthTable from './NetWorthTable';
 
 const Home: React.FC = () => {
@@ -122,8 +123,12 @@ const Home: React.FC = () => {
         <BalanceChart points={chartPoints} ariaLabel={t('Projection')} />
       </div>
 
-      <RecurringItemsPanel accountId={currentAccount.id} onItemsChanged={bumpProjection} />
-      <ProjectionTable days={days} />
+      <div className="grid gap-10 md:grid-cols-[1.15fr_1fr]">
+        <RecurringItemsPanel accountId={currentAccount.id} onItemsChanged={bumpProjection} />
+        <UpcomingPanel summary={summary} />
+      </div>
+
+      <ProjectionTable days={days} summary={summary} />
       <BalanceCheckpointsPanel accountId={currentAccount.id} onCheckpointsChanged={bumpProjection} />
     </PageLayout>
   );

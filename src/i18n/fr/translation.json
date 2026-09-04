@@ -88,5 +88,6 @@
   "SomethingWentWrong": "Une erreur est survenue.",
   "StartingBalanceNotSet": "Définissez un solde de départ pour voir une projection.",
   "CouldNotLoadProjection": "Impossible de charger la projection.",
-  "LowestPoint": "Point le plus bas"
+  "LowestPoint": "Point le plus bas",
+  "GoesNegativeOn": "Le solde devient négatif le {{date}}"
 }
