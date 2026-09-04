@@ -156,3 +156,21 @@ export function projectBalance(params: ProjectBalanceParams): ProjectionDay[] {
 
   return days;
 }
+
+export interface NetWorthDay {
+  date: string;
+  totalCents: number;
+}
+
+// Every series passed in must be computed over the exact same [from, to]
+// range, so they're always the same length with positionally-aligned dates —
+// no date-matching by string needed.
+export function sumProjections(seriesList: ProjectionDay[][]): NetWorthDay[] {
+  if (seriesList.length === 0) {
+    return [];
+  }
+  return seriesList[0].map((_, i) => ({
+    date: seriesList[0][i].date,
+    totalCents: seriesList.reduce((sum, series) => sum + series[i].balanceCents, 0),
+  }));
+}

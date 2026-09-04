@@ -5,7 +5,7 @@ import { writeFile, unlink } from 'fs/promises';
 import SqliteDatabase from 'better-sqlite3';
 import { accountsQueries, recurringItemsQueries } from '../db/queries';
 import { toAccountJson, toRecurringItemJson } from './mappers';
-import { projectBalance, type Frequency, type RecurringItemInput } from '../projection';
+import { projectBalance, sumProjections, type Frequency, type RecurringItemInput } from '../projection';
 import { backupDbTo, replaceDbWith } from '../db';
 
 export const apiRouter = Router();
@@ -262,6 +262,66 @@ apiRouter.get('/accounts/:id/projection', async (req, res) => {
       to,
     }),
   );
+});
+
+apiRouter.get('/net-worth', async (req, res) => {
+  const { from, to } = req.query;
+  if (!isValidDateString(from) || !isValidDateString(to)) {
+    res.status(400).json({ error: 'from and to must be YYYY-MM-DD' });
+    return;
+  }
+  if (to < from) {
+    res.status(400).json({ error: 'to must not be before from' });
+    return;
+  }
+
+  const allAccounts = await accountsQueries.list();
+  const included = allAccounts.filter((account) => account.starting_balance_date);
+  const excludedAccountIds = allAccounts.filter((account) => !account.starting_balance_date).map((account) => account.id);
+
+  if (included.length === 0) {
+    res.json({ includedAccountIds: [], excludedAccountIds, days: [] });
+    return;
+  }
+
+  const effectiveFrom = included.reduce(
+    (max, account) => (account.starting_balance_date! > max ? account.starting_balance_date! : max),
+    from,
+  );
+
+  if (effectiveFrom > to) {
+    res.json({ includedAccountIds: included.map((account) => account.id), excludedAccountIds, days: [] });
+    return;
+  }
+
+  const seriesList = await Promise.all(
+    included.map(async (account) => {
+      const items: RecurringItemInput[] = (await recurringItemsQueries.list(account.id)).map((row) => ({
+        id: row.id,
+        name: row.name,
+        amountCents: row.amount_cents,
+        frequency: row.frequency as Frequency,
+        interval: row.interval,
+        startDate: row.start_date,
+        endDate: row.end_date,
+        semiMonthlyDay1: row.semi_monthly_day1,
+        semiMonthlyDay2: row.semi_monthly_day2,
+      }));
+      return projectBalance({
+        startingBalanceCents: account.starting_balance_cents,
+        startingBalanceDate: account.starting_balance_date!,
+        items,
+        from: effectiveFrom,
+        to,
+      });
+    }),
+  );
+
+  res.json({
+    includedAccountIds: included.map((account) => account.id),
+    excludedAccountIds,
+    days: sumProjections(seriesList),
+  });
 });
 
 const SQLITE_HEADER = 'SQLite format 3\0';

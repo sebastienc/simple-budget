@@ -8,6 +8,7 @@ import AccountSetup from './AccountSetup';
 import AccountSettingsForm from './AccountSettingsForm';
 import RecurringItemsPanel from './RecurringItemsPanel';
 import ProjectionTable from './ProjectionTable';
+import NetWorthTable from './NetWorthTable';
 
 const linkButtonClassName =
   'inline-flex cursor-default items-center justify-center rounded-md px-2 py-1 text-sm text-blue-700 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-blue-600 dark:text-blue-400';
@@ -17,6 +18,7 @@ const Home: React.FC = () => {
   const { addToast } = useToaster();
   const { accounts, isLoading, createAccount, updateAccount, deleteAccount } = useAccounts();
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [isViewingNetWorth, setIsViewingNetWorth] = useState(false);
   const [projectionRefreshToken, setProjectionRefreshToken] = useState(0);
   const [isEditingAccount, setIsEditingAccount] = useState(false);
 
@@ -31,9 +33,12 @@ const Home: React.FC = () => {
       {accounts.map((account) => (
         <Button
           key={account.id}
-          onPress={() => setSelectedAccountId(account.id)}
+          onPress={() => {
+            setSelectedAccountId(account.id);
+            setIsViewingNetWorth(false);
+          }}
           className={`cursor-default rounded-md px-3 py-1.5 text-sm outline-hidden ${
-            account.id === currentAccount?.id
+            !isViewingNetWorth && account.id === currentAccount?.id
               ? 'bg-blue-600 text-white'
               : 'bg-gray-200 text-gray-900 dark:bg-zinc-700 dark:text-gray-100'
           }`}
@@ -41,8 +46,25 @@ const Home: React.FC = () => {
           {account.name}
         </Button>
       ))}
+      <Button
+        onPress={() => setIsViewingNetWorth(true)}
+        className={`cursor-default rounded-md px-3 py-1.5 text-sm outline-hidden ${
+          isViewingNetWorth ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900 dark:bg-zinc-700 dark:text-gray-100'
+        }`}
+      >
+        {t('AllAccounts')}
+      </Button>
     </div>
   );
+
+  if (isViewingNetWorth) {
+    return (
+      <PageLayout pageTitle={t('Home')}>
+        {accountSwitcher}
+        <NetWorthTable />
+      </PageLayout>
+    );
+  }
 
   if (!currentAccount || !currentAccount.startingBalanceDate) {
     return (
