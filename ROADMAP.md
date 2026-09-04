@@ -17,6 +17,4 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 ## Deferred (from the original spreadsheet, lower priority than the above)
 
 - [ ] Subscription/recurring-charge verification checklist
-- [ ] One-off project cost tracker (e.g. a renovation)
-- [ ] Installment-payment tracker
 - [x] Property-tax sinking-fund tracker — recurring items can be flagged "sinking fund"; the app computes a suggested monthly set-aside (amount ÷ months between previous/next occurrence) and shows a summed total across flagged items so a lump-sum bill (e.g. school/municipal tax) can be split and pre-funded ahead of its due date. Purely informational — the projection still debits the full lump sum on its actual due date.
