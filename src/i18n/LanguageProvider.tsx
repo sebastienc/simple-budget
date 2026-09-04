@@ -30,29 +30,22 @@ const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   useEffect(() => {
     setIsLoading(true);
     const localLang = window.localStorage.getItem('i18nextLng');
-    if (!localLang) {
-      console.log('localLang is not good: ', localLang);
-      setLanguage('en');
-    } else {
-      console.log('localLang is good: ', localLang);
-      setLanguage(localLang);
-    }
+    setLanguage(localLang || 'en');
   }, []);
 
   useEffect(() => {
-    console.log('setting langauge to: ', language);
     if (!language) {
       return;
     }
     setAriaLanguage(getAriaLanguage(language));
     window.localStorage.setItem('i18nextLng', language);
+    document.documentElement.lang = getAriaLanguage(language);
     i18n.changeLanguage(language);
     setIsLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const updateLanguage = (value: string): void => {
-    console.log('updating language to: ', value);
     setIsLoading(true);
     setLanguage(value);
   };

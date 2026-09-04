@@ -10,7 +10,7 @@ const LanguageSelector: React.FC = () => {
   const { language, updateLanguage, isLoading: isLanguageLoading } = useLanguage();
   const selectedKey = language ?? 'en';
 
-  const handleSelection = (key: Key) => {
+  const handleSelection = (key: Key | null) => {
     if (key && typeof key === 'string') {
       updateLanguage(key);
     }

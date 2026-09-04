@@ -3,3 +3,78 @@
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens — the "Runway" direction.
+ *
+ * Colours are declared as plain CSS variables below and exposed to Tailwind
+ * through `@theme inline`, so the generated utilities resolve *through* the
+ * variable rather than baking in a literal. That is what lets a single
+ * `bg-surface` / `text-ink` work in both themes: `.dark` only has to redefine
+ * the variables, and no `dark:` colour variant is needed anywhere.
+ *
+ * `--warn` (a projected shortfall) and `--danger` (a destructive control) are
+ * deliberately distinct from `--accent`: semantic colour is not the accent hue.
+ */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Public Sans Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+:root {
+  --surface: #fcfcfd;
+  --surface-raised: #ffffff;
+  --ink: #0b1020;
+  --ink-2: #566070;
+  --ink-3: #8a94a3;
+  --rule: #e6e9ed;
+  --rule-strong: #d2d7de;
+  --accent: #0e7c86;
+  --accent-soft: #e3f2f2;
+  --warn: #c2410c;
+  --warn-soft: #fcede4;
+  --danger: #b4231a;
+}
+
+.dark {
+  --surface: #0c1014;
+  --surface-raised: #12181d;
+  --ink: #e8edf2;
+  --ink-2: #98a3b1;
+  --ink-3: #6d7885;
+  --rule: #1f262d;
+  --rule-strong: #2c353e;
+  --accent: #3fb6be;
+  --accent-soft: #0f2a2c;
+  --warn: #f08a50;
+  --warn-soft: #2a1a11;
+  --danger: #e4695a;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+}
