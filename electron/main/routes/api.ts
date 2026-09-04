@@ -53,7 +53,11 @@ apiRouter.patch('/accounts/:id', async (req, res) => {
     return;
   }
 
-  const { startingBalanceCents, startingBalanceDate } = req.body ?? {};
+  const { name, startingBalanceCents, startingBalanceDate } = req.body ?? {};
+  if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
+    res.status(400).json({ error: 'name must be a non-empty string' });
+    return;
+  }
   if (startingBalanceCents !== undefined && typeof startingBalanceCents !== 'number') {
     res.status(400).json({ error: 'startingBalanceCents must be a number' });
     return;
@@ -63,7 +67,18 @@ apiRouter.patch('/accounts/:id', async (req, res) => {
     return;
   }
 
-  res.json(toAccountJson(await accountsQueries.update(id, { startingBalanceCents, startingBalanceDate })));
+  res.json(toAccountJson(await accountsQueries.update(id, { name, startingBalanceCents, startingBalanceDate })));
+});
+
+apiRouter.delete('/accounts/:id', async (req, res) => {
+  const id = parseId(req.params.id);
+  const account = id === null ? undefined : await accountsQueries.get(id);
+  if (!account) {
+    res.status(404).json({ error: 'account not found' });
+    return;
+  }
+  await accountsQueries.delete(id as number);
+  res.status(204).send();
 });
 
 apiRouter.get('/accounts/:id/recurring-items', async (req, res) => {

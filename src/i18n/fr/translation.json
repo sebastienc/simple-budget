@@ -38,5 +38,10 @@
   "ExportBackup": "Exporter une sauvegarde",
   "ImportBackup": "Importer une sauvegarde",
   "ImportBackupConfirm": "Ceci remplacera toutes les données actuelles par le contenu du fichier de sauvegarde sélectionné. Continuer?",
-  "ImportBackupFailed": "Échec de l'importation — le fichier sélectionné n'est pas une sauvegarde valide"
+  "ImportBackupFailed": "Échec de l'importation — le fichier sélectionné n'est pas une sauvegarde valide",
+  "EditAccount": "Modifier le compte",
+  "DeleteAccount": "Supprimer le compte",
+  "DeleteAccountConfirm": "Ceci supprimera définitivement ce compte et tous ses éléments récurrents. Continuer?",
+  "AccountUpdated": "Compte mis à jour",
+  "AccountDeleted": "Compte supprimé"
 }

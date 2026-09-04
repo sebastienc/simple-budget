@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import { Button } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
+import { useToaster } from '@/toast/useToaster';
 import PageLayout from '../components/layouts/PageLayout';
 import { useAccounts } from '@/data/useAccounts';
 import AccountSetup from './AccountSetup';
+import AccountSettingsForm from './AccountSettingsForm';
 import RecurringItemsPanel from './RecurringItemsPanel';
 import ProjectionTable from './ProjectionTable';
 
+const linkButtonClassName =
+  'inline-flex cursor-default items-center justify-center rounded-md px-2 py-1 text-sm text-blue-700 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-blue-600 dark:text-blue-400';
+
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const { accounts, isLoading, createAccount, updateStartingBalance } = useAccounts();
+  const { addToast } = useToaster();
+  const { accounts, isLoading, createAccount, updateAccount, deleteAccount } = useAccounts();
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
   const [projectionRefreshToken, setProjectionRefreshToken] = useState(0);
+  const [isEditingAccount, setIsEditingAccount] = useState(false);
 
   if (isLoading) {
     return <PageLayout pageTitle={t('Home')}>{null}</PageLayout>;
@@ -41,7 +48,13 @@ const Home: React.FC = () => {
     return (
       <PageLayout pageTitle={t('Home')}>
         {accountSwitcher}
-        <AccountSetup account={currentAccount} onCreateAccount={createAccount} onSetStartingBalance={updateStartingBalance} />
+        <AccountSetup
+          account={currentAccount}
+          onCreateAccount={createAccount}
+          onSetStartingBalance={(accountId, cents, date) =>
+            updateAccount(accountId, { startingBalanceCents: cents, startingBalanceDate: date })
+          }
+        />
       </PageLayout>
     );
   }
@@ -49,11 +62,39 @@ const Home: React.FC = () => {
   return (
     <PageLayout pageTitle={t('Home')}>
       {accountSwitcher}
-      <RecurringItemsPanel
-        accountId={currentAccount.id}
-        onItemsChanged={() => setProjectionRefreshToken((token) => token + 1)}
-      />
-      <ProjectionTable accountId={currentAccount.id} refreshToken={projectionRefreshToken} />
+      <div className="flex items-center justify-between p-4 pb-0">
+        <h2 className="text-lg font-semibold">{currentAccount.name}</h2>
+        {!isEditingAccount && (
+          <Button className={linkButtonClassName} onPress={() => setIsEditingAccount(true)}>
+            {t('EditAccount')}
+          </Button>
+        )}
+      </div>
+
+      {isEditingAccount ? (
+        <AccountSettingsForm
+          account={currentAccount}
+          onSave={async (patch) => {
+            await updateAccount(currentAccount.id, patch);
+            addToast(t('AccountUpdated'));
+            setIsEditingAccount(false);
+          }}
+          onDelete={async () => {
+            await deleteAccount(currentAccount.id);
+            addToast(t('AccountDeleted'));
+            setIsEditingAccount(false);
+          }}
+          onCancel={() => setIsEditingAccount(false)}
+        />
+      ) : (
+        <>
+          <RecurringItemsPanel
+            accountId={currentAccount.id}
+            onItemsChanged={() => setProjectionRefreshToken((token) => token + 1)}
+          />
+          <ProjectionTable accountId={currentAccount.id} refreshToken={projectionRefreshToken} />
+        </>
+      )}
     </PageLayout>
   );
 };

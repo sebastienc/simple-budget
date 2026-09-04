@@ -8,6 +8,12 @@ export interface Account {
   createdAt: string;
 }
 
+export interface AccountPatch {
+  name?: string;
+  startingBalanceCents?: number;
+  startingBalanceDate?: string;
+}
+
 export function useAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,17 +41,25 @@ export function useAccounts() {
     [refresh],
   );
 
-  const updateStartingBalance = useCallback(
-    async (accountId: number, startingBalanceCents: number, startingBalanceDate: string) => {
+  const updateAccount = useCallback(
+    async (accountId: number, patch: AccountPatch) => {
       await fetch(`/api/accounts/${accountId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startingBalanceCents, startingBalanceDate }),
+        body: JSON.stringify(patch),
       });
       await refresh();
     },
     [refresh],
   );
 
-  return { accounts, isLoading, createAccount, updateStartingBalance };
+  const deleteAccount = useCallback(
+    async (accountId: number) => {
+      await fetch(`/api/accounts/${accountId}`, { method: 'DELETE' });
+      await refresh();
+    },
+    [refresh],
+  );
+
+  return { accounts, isLoading, createAccount, updateAccount, deleteAccount };
 }

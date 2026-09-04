@@ -1,6 +1,7 @@
 import { getDb } from './index';
 
 export interface UpdateAccountInput {
+  name?: string;
   startingBalanceCents?: number;
   startingBalanceDate?: string | null;
 }
@@ -14,12 +15,20 @@ export const accountsQueries = {
     getDb()
       .updateTable('accounts')
       .set({
+        ...(input.name !== undefined && { name: input.name }),
         ...(input.startingBalanceCents !== undefined && { starting_balance_cents: input.startingBalanceCents }),
         ...(input.startingBalanceDate !== undefined && { starting_balance_date: input.startingBalanceDate }),
       })
       .where('id', '=', id)
       .returningAll()
       .executeTakeFirstOrThrow(),
+  delete: (id: number) =>
+    getDb()
+      .transaction()
+      .execute(async (trx) => {
+        await trx.deleteFrom('recurring_items').where('account_id', '=', id).execute();
+        await trx.deleteFrom('accounts').where('id', '=', id).execute();
+      }),
 };
 
 export interface CreateRecurringItemInput {

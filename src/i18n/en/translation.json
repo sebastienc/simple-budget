@@ -38,5 +38,10 @@
   "ExportBackup": "Export backup",
   "ImportBackup": "Import backup",
   "ImportBackupConfirm": "This will replace all current data with the contents of the selected backup file. Continue?",
-  "ImportBackupFailed": "Import failed — the selected file isn't a valid backup"
+  "ImportBackupFailed": "Import failed — the selected file isn't a valid backup",
+  "EditAccount": "Edit account",
+  "DeleteAccount": "Delete account",
+  "DeleteAccountConfirm": "This will permanently delete this account and all its recurring items. Continue?",
+  "AccountUpdated": "Account updated",
+  "AccountDeleted": "Account deleted"
 }

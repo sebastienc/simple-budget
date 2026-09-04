@@ -4,9 +4,9 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 
 ## Basic features
 
-- [ ] Edit / delete an account (currently create-and-set-balance only; no rename or delete anywhere in the app)
+- [x] Edit / delete an account (rename, move the starting-balance anchor, delete with cascading recurring items)
 - [ ] Confirm before deleting a recurring item (currently instant, no undo)
-- [ ] Edit the starting-balance anchor after initial setup, to periodically reconcile against your real bank balance
+- [ ] Balance reconciliation history — record multiple "as of <date>, balance is $X" checkpoints over time (not just move the one anchor), so past corrections stay visible/auditable. Needs a new checkpoints table and a revised projection algorithm (pick the most recent checkpoint at-or-before each day); bigger than a CRUD add-on.
 - [ ] Combined / net-worth view across multiple accounts (each account projects independently today)
 - [ ] Sort / search recurring items (fine at small scale, will matter later)
 
