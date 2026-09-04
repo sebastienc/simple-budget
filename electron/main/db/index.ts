@@ -1,6 +1,6 @@
 import { app } from 'electron';
-import { join } from 'path';
-import { rm, copyFile } from 'fs/promises';
+import { dirname, join } from 'path';
+import { mkdir, rm, copyFile } from 'fs/promises';
 import SqliteDatabase from 'better-sqlite3';
 import { Kysely, SqliteDialect } from 'kysely';
 import { Migrator, type Migration, type MigrationProvider } from 'kysely/migration';
@@ -35,12 +35,23 @@ export function getDb(): Kysely<Database> {
   return db;
 }
 
+/**
+ * SIMPLE_BUDGET_DB points the app at a different database file. It exists so a
+ * throwaway one can be used for demos and manual testing — seeded data has no
+ * business landing beside somebody's real finances, and the alternative is
+ * remembering to delete test accounts afterwards.
+ */
 function dbPath(): string {
-  return join(app.getPath('userData'), 'simple-budget.db');
+  return process.env.SIMPLE_BUDGET_DB || join(app.getPath('userData'), 'simple-budget.db');
 }
 
 export async function initDb(): Promise<Kysely<Database>> {
-  sqlite = new SqliteDatabase(dbPath());
+  const path = dbPath();
+  // An overridden path may point somewhere that doesn't exist yet; SQLite will
+  // not create the parent directory for us.
+  await mkdir(dirname(path), { recursive: true });
+
+  sqlite = new SqliteDatabase(path);
   sqlite.pragma('journal_mode = WAL');
 
   db = new Kysely<Database>({ dialect: new SqliteDialect({ database: sqlite }) });

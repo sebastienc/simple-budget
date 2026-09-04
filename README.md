@@ -30,9 +30,26 @@ Requires Node `24.20.0` (see `.nvmrc`).
 npm install       # also rebuilds better-sqlite3's native binding for Electron
 npm run dev        # start the app (Electron window + Vite dev server with HMR)
 npm run lint       # ESLint
+npm test           # unit tests (vitest)
 npm run build      # typecheck + production build
 npm run dist       # package a distributable (electron-builder, macOS .dmg)
 ```
+
+### Demo data
+
+`npm run dev` opens your real database. To poke at the app without putting fake
+bills next to real finances, run it against a throwaway one and seed that:
+
+```sh
+npm run dev:demo   # app against .demo/simple-budget.db (gitignored)
+npm run seed       # in another terminal — fills it with sample accounts
+```
+
+The seed goes through the HTTP API, so its rows pass the same validation as
+anything typed into the UI, and it refuses to run against a database that
+already has accounts (`--force` overrides). Delete `.demo/` to start over.
+
+`SIMPLE_BUDGET_DB` sets the database path for any command, not just `dev:demo`.
 
 ## Project layout
 

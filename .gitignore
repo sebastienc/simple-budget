@@ -24,3 +24,6 @@ release
 *.njsproj
 *.sln
 *.sw?
+
+# throwaway database used by npm run dev:demo
+.demo

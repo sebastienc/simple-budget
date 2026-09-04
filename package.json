@@ -6,10 +6,12 @@
   "main": "dist-electron/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:demo": "SIMPLE_BUDGET_DB=.demo/simple-budget.db electron-vite dev",
     "build": "tsc -b && electron-vite build",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "seed": "node scripts/seed.mjs",
     "preview": "electron-vite preview",
     "dist": "electron-vite build && electron-builder",
     "postinstall": "electron-builder install-app-deps"
