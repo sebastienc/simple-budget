@@ -21,6 +21,8 @@ export function toRecurringItemJson(row: Selectable<RecurringItemsTable>) {
     interval: row.interval,
     startDate: row.start_date,
     endDate: row.end_date,
+    semiMonthlyDay1: row.semi_monthly_day1,
+    semiMonthlyDay2: row.semi_monthly_day2,
     createdAt: row.created_at,
   };
 }

@@ -9,7 +9,7 @@ export interface ProjectionDay {
 
 export type ProjectionError = 'starting_balance_not_set' | 'unknown';
 
-export function useProjection(accountId: number | null, from: string, to: string) {
+export function useProjection(accountId: number | null, from: string, to: string, refreshToken: number = 0) {
   const [days, setDays] = useState<ProjectionDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ProjectionError | null>(null);
@@ -50,7 +50,7 @@ export function useProjection(accountId: number | null, from: string, to: string
     return () => {
       cancelled = true;
     };
-  }, [accountId, from, to]);
+  }, [accountId, from, to, refreshToken]);
 
   return { days, isLoading, error };
 }

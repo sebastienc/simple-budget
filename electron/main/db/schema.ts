@@ -17,6 +17,8 @@ export interface RecurringItemsTable {
   interval: ColumnType<number, number | undefined, number>;
   start_date: string;
   end_date: string | null;
+  semi_monthly_day1: number | null;
+  semi_monthly_day2: number | null;
   created_at: ColumnType<string, string | undefined, never>;
 }
 

@@ -5,6 +5,7 @@ import { useProjection } from '@/data/useProjection';
 
 export interface ProjectionTableProps {
   accountId: number;
+  refreshToken?: number;
 }
 
 const inputClassName =
@@ -22,11 +23,11 @@ function formatISODate(isoDate: string, pattern: string): string {
   return format(new Date(year, month - 1, day), pattern);
 }
 
-const ProjectionTable: React.FC<ProjectionTableProps> = ({ accountId }) => {
+const ProjectionTable: React.FC<ProjectionTableProps> = ({ accountId, refreshToken }) => {
   const { t } = useTranslation();
   const [from, setFrom] = useState(() => toISODate(new Date()));
   const [to, setTo] = useState(() => toISODate(addDays(new Date(), 90)));
-  const { days, isLoading, error } = useProjection(accountId, from, to);
+  const { days, isLoading, error } = useProjection(accountId, from, to, refreshToken);
 
   if (error === 'starting_balance_not_set') {
     return null;

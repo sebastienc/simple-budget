@@ -7,10 +7,12 @@ import { Migrator, type Migration, type MigrationProvider } from 'kysely/migrati
 import type { Database } from './schema';
 import * as migration001Init from './migrations/001_init';
 import * as migration002RecurringItems from './migrations/002_recurring_items';
+import * as migration003SemimonthlyRecurringItems from './migrations/003_semimonthly_recurring_items';
 
 const migrations: Record<string, Migration> = {
   '001_init': migration001Init,
   '002_recurring_items': migration002RecurringItems,
+  '003_semimonthly_recurring_items': migration003SemimonthlyRecurringItems,
 };
 
 class InlineMigrationProvider implements MigrationProvider {

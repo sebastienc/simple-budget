@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'semimonthly';
 
 export interface RecurringItem {
   id: number;
@@ -11,6 +11,8 @@ export interface RecurringItem {
   interval: number;
   startDate: string;
   endDate: string | null;
+  semiMonthlyDay1: number | null;
+  semiMonthlyDay2: number | null;
   createdAt: string;
 }
 
@@ -21,6 +23,8 @@ export interface RecurringItemInput {
   interval: number;
   startDate: string;
   endDate?: string | null;
+  semiMonthlyDay1?: number | null;
+  semiMonthlyDay2?: number | null;
 }
 
 export function useRecurringItems(accountId: number | null) {

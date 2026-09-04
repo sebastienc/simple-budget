@@ -11,6 +11,7 @@ const Home: React.FC = () => {
   const { t } = useTranslation();
   const { accounts, isLoading, createAccount, updateStartingBalance } = useAccounts();
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [projectionRefreshToken, setProjectionRefreshToken] = useState(0);
 
   if (isLoading) {
     return <PageLayout pageTitle={t('Home')}>{null}</PageLayout>;
@@ -48,8 +49,11 @@ const Home: React.FC = () => {
   return (
     <PageLayout pageTitle={t('Home')}>
       {accountSwitcher}
-      <RecurringItemsPanel accountId={currentAccount.id} />
-      <ProjectionTable accountId={currentAccount.id} />
+      <RecurringItemsPanel
+        accountId={currentAccount.id}
+        onItemsChanged={() => setProjectionRefreshToken((token) => token + 1)}
+      />
+      <ProjectionTable accountId={currentAccount.id} refreshToken={projectionRefreshToken} />
     </PageLayout>
   );
 };

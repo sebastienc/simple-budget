@@ -7,6 +7,7 @@ import RecurringItemForm from './RecurringItemForm';
 
 export interface RecurringItemsPanelProps {
   accountId: number;
+  onItemsChanged?: () => void;
 }
 
 const buttonClassName =
@@ -15,7 +16,7 @@ const buttonClassName =
 const linkButtonClassName =
   'inline-flex cursor-default items-center justify-center rounded-md px-2 py-1 text-sm text-blue-700 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-blue-600 dark:text-blue-400';
 
-const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId }) => {
+const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, onItemsChanged }) => {
   const { t } = useTranslation();
   const { addToast } = useToaster();
   const { items, createItem, updateItem, deleteItem } = useRecurringItems(accountId);
@@ -27,17 +28,20 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId }) 
     await createItem(input);
     addToast(t('RecurringItemAdded'));
     setMode('idle');
+    onItemsChanged?.();
   };
 
   const handleUpdate = async (id: number, input: RecurringItemInput) => {
     await updateItem(id, input);
     addToast(t('RecurringItemUpdated'));
     setMode('idle');
+    onItemsChanged?.();
   };
 
   const handleDelete = async (item: RecurringItem) => {
     await deleteItem(item.id);
     addToast(t('RecurringItemDeleted'));
+    onItemsChanged?.();
   };
 
   return (
@@ -70,6 +74,7 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId }) 
                 <span className="font-medium">{item.name}</span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   {(item.amountCents / 100).toFixed(2)} · {t(`Frequency${item.frequency.charAt(0).toUpperCase()}${item.frequency.slice(1)}`)}
+                  {item.frequency === 'semimonthly' && ` (${item.semiMonthlyDay1}, ${item.semiMonthlyDay2})`}
                 </span>
               </div>
               <div className="flex gap-2">

@@ -1,4 +1,4 @@
-export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'semimonthly';
 
 export interface RecurringItemInput {
   id: number;
@@ -8,6 +8,8 @@ export interface RecurringItemInput {
   interval: number;
   startDate: string;
   endDate: string | null;
+  semiMonthlyDay1?: number | null;
+  semiMonthlyDay2?: number | null;
 }
 
 export interface ProjectionDay {
@@ -52,6 +54,17 @@ function lastDayOfMonth(year: number, monthIndex: number): number {
   return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
 }
 
+function shiftToPrecedingBusinessDay(date: Date): Date {
+  const day = date.getUTCDay(); // 0 = Sunday, 6 = Saturday
+  if (day === 6) {
+    return addDays(date, -1);
+  }
+  if (day === 0) {
+    return addDays(date, -2);
+  }
+  return date;
+}
+
 function occursOn(item: RecurringItemInput, date: Date): boolean {
   const start = parseISODate(item.startDate);
   if (date.getTime() < start.getTime()) {
@@ -83,6 +96,27 @@ function occursOn(item: RecurringItemInput, date: Date): boolean {
       const targetMonth = start.getUTCMonth();
       const targetDay = isStartFeb29 ? Math.min(29, lastDayOfMonth(date.getUTCFullYear(), 1)) : start.getUTCDate();
       return date.getUTCMonth() === targetMonth && date.getUTCDate() === targetDay;
+    }
+    case 'semimonthly': {
+      if (!item.semiMonthlyDay1 || !item.semiMonthlyDay2) {
+        return false;
+      }
+      // Check the surrounding months too: a weekend shift can cross a month
+      // boundary (e.g. day 1 falling on a Saturday shifts back into the
+      // previous month).
+      for (const monthOffset of [-1, 0, 1]) {
+        const year = date.getUTCFullYear();
+        const month = date.getUTCMonth() + monthOffset;
+        const last = lastDayOfMonth(year, month);
+        for (const rawDay of [item.semiMonthlyDay1, item.semiMonthlyDay2]) {
+          const clamped = Math.min(rawDay, last);
+          const candidate = shiftToPrecedingBusinessDay(new Date(Date.UTC(year, month, clamped)));
+          if (candidate.getTime() === date.getTime()) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
   }
 }

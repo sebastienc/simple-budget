@@ -10,7 +10,7 @@ export interface RecurringItemFormProps {
   onCancel: () => void;
 }
 
-const FREQUENCIES: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly'];
+const FREQUENCIES: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'semimonthly'];
 
 const inputClassName =
   'rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-hidden focus-visible:ring-2 focus-visible:ring-blue-600 dark:border-zinc-600 dark:bg-zinc-900 dark:text-gray-100';
@@ -26,6 +26,10 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
   const [interval, setInterval] = useState(String(initialValue?.interval ?? 1));
   const [startDate, setStartDate] = useState(initialValue?.startDate ?? new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(initialValue?.endDate ?? '');
+  const [semiMonthlyDay1, setSemiMonthlyDay1] = useState(String(initialValue?.semiMonthlyDay1 ?? 15));
+  const [semiMonthlyDay2, setSemiMonthlyDay2] = useState(String(initialValue?.semiMonthlyDay2 ?? 31));
+
+  const isSemiMonthly = frequency === 'semimonthly';
 
   return (
     <form
@@ -36,9 +40,11 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
           name,
           amountCents: Math.round(parseFloat(amount || '0') * 100),
           frequency,
-          interval: parseInt(interval, 10) || 1,
+          interval: isSemiMonthly ? 1 : parseInt(interval, 10) || 1,
           startDate,
           endDate: endDate || null,
+          semiMonthlyDay1: isSemiMonthly ? parseInt(semiMonthlyDay1, 10) : null,
+          semiMonthlyDay2: isSemiMonthly ? parseInt(semiMonthlyDay2, 10) : null,
         });
       }}
     >
@@ -89,17 +95,46 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
           </Popover>
         </Select>
       </div>
-      <label className="flex flex-col gap-1">
-        <span>{t('Every')}</span>
-        <input
-          className={inputClassName}
-          type="number"
-          min={1}
-          value={interval}
-          onChange={(event) => setInterval(event.target.value)}
-          required
-        />
-      </label>
+      {isSemiMonthly ? (
+        <>
+          <label className="flex flex-col gap-1">
+            <span>{t('SemiMonthlyDay1')}</span>
+            <input
+              className={inputClassName}
+              type="number"
+              min={1}
+              max={31}
+              value={semiMonthlyDay1}
+              onChange={(event) => setSemiMonthlyDay1(event.target.value)}
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span>{t('SemiMonthlyDay2')}</span>
+            <input
+              className={inputClassName}
+              type="number"
+              min={1}
+              max={31}
+              value={semiMonthlyDay2}
+              onChange={(event) => setSemiMonthlyDay2(event.target.value)}
+              required
+            />
+          </label>
+        </>
+      ) : (
+        <label className="flex flex-col gap-1">
+          <span>{t('Every')}</span>
+          <input
+            className={inputClassName}
+            type="number"
+            min={1}
+            value={interval}
+            onChange={(event) => setInterval(event.target.value)}
+            required
+          />
+        </label>
+      )}
       <label className="flex flex-col gap-1">
         <span>{t('StartDate')}</span>
         <input className={inputClassName} type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />

@@ -30,6 +30,8 @@ export interface CreateRecurringItemInput {
   interval: number;
   startDate: string;
   endDate?: string | null;
+  semiMonthlyDay1?: number | null;
+  semiMonthlyDay2?: number | null;
 }
 
 export interface UpdateRecurringItemInput {
@@ -39,6 +41,8 @@ export interface UpdateRecurringItemInput {
   interval?: number;
   startDate?: string;
   endDate?: string | null;
+  semiMonthlyDay1?: number | null;
+  semiMonthlyDay2?: number | null;
 }
 
 export const recurringItemsQueries = {
@@ -56,6 +60,8 @@ export const recurringItemsQueries = {
         interval: input.interval,
         start_date: input.startDate,
         end_date: input.endDate ?? null,
+        semi_monthly_day1: input.semiMonthlyDay1 ?? null,
+        semi_monthly_day2: input.semiMonthlyDay2 ?? null,
       })
       .returningAll()
       .executeTakeFirstOrThrow(),
@@ -69,6 +75,8 @@ export const recurringItemsQueries = {
         ...(input.interval !== undefined && { interval: input.interval }),
         ...(input.startDate !== undefined && { start_date: input.startDate }),
         ...(input.endDate !== undefined && { end_date: input.endDate }),
+        ...(input.semiMonthlyDay1 !== undefined && { semi_monthly_day1: input.semiMonthlyDay1 }),
+        ...(input.semiMonthlyDay2 !== undefined && { semi_monthly_day2: input.semiMonthlyDay2 }),
       })
       .where('id', '=', id)
       .returningAll()
