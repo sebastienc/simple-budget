@@ -3,6 +3,7 @@ import { type NavigateOptions, useHref, useNavigate, Navigate, Routes, Route } f
 import { RouterProvider } from 'react-aria-components';
 import Home from './home/Home';
 import ErrorBoundary from './components/errors/ErrorBoundary';
+import { basicRoutes } from '@/lib/routes';
 
 declare module 'react-aria-components' {
   interface RouterConfig {
@@ -11,12 +12,6 @@ declare module 'react-aria-components' {
 }
 
 const Error404Page = lazy(() => import('./components/errors/Error404Page'));
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const basicRoutes = {
-  start: '/',
-  home: '/home',
-};
 
 export interface RouterProviderWrapperProps {
   children?: React.ReactNode | React.ReactNode[];

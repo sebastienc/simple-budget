@@ -1,6 +1,4 @@
 {
-  "Home": "Home",
-  "Hello": "Hello",
   "Date": "Date",
   "StartingBalance": "Starting balance",
   "StartingBalanceDate": "As of",
@@ -9,7 +7,6 @@
   "CreateAccount": "Create account",
   "RecurringItems": "Recurring items",
   "AddRecurringItem": "Add recurring item",
-  "EditRecurringItem": "Edit recurring item",
   "RecurringItemAdded": "Recurring item added",
   "RecurringItemUpdated": "Recurring item updated",
   "RecurringItemDeleted": "Recurring item deleted",
@@ -77,7 +74,6 @@
   "WhatsComing": "What's coming",
   "NothingComing": "Nothing scheduled in this range",
   "Detail": "Detail",
-  "Change": "Change",
   "Settings": "Settings",
   "DarkMode": "Dark mode",
   "Language": "Language",

@@ -1,6 +1,4 @@
 {
-  "Home": "Accueil",
-  "Hello": "Bonjour",
   "Date": "Date",
   "StartingBalance": "Solde de départ",
   "StartingBalanceDate": "En date du",
@@ -9,7 +7,6 @@
   "CreateAccount": "Créer un compte",
   "RecurringItems": "Éléments récurrents",
   "AddRecurringItem": "Ajouter un élément récurrent",
-  "EditRecurringItem": "Modifier l'élément récurrent",
   "RecurringItemAdded": "Élément récurrent ajouté",
   "RecurringItemUpdated": "Élément récurrent mis à jour",
   "RecurringItemDeleted": "Élément récurrent supprimé",
@@ -77,7 +74,6 @@
   "WhatsComing": "À venir",
   "NothingComing": "Rien de prévu dans cette période",
   "Detail": "Détail",
-  "Change": "Variation",
   "Settings": "Réglages",
   "DarkMode": "Mode sombre",
   "Language": "Langue",

@@ -59,8 +59,3 @@ export function summarizeProjection(days: ProjectionDay[]): ProjectionSummary | 
     events,
   };
 }
-
-/** The first `limit` upcoming events, for the "what's coming" panel. */
-export function takeUpcoming(summary: ProjectionSummary, limit: number): ProjectionEvent[] {
-  return summary.events.slice(0, limit);
-}
