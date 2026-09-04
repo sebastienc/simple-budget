@@ -8,6 +8,8 @@
     "dev": "electron-vite dev",
     "build": "tsc -b && electron-vite build",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "electron-vite preview",
     "dist": "electron-vite build && electron-builder",
     "postinstall": "electron-rebuild -f -w better-sqlite3"
@@ -55,6 +57,7 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^5.0.0"
   }
 }

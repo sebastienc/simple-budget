@@ -218,14 +218,26 @@ function findNextOccurrence(item: RecurringItemInput, from: Date, maxDays = 3660
   return null;
 }
 
-function findPreviousOccurrence(item: RecurringItemInput, before: Date, maxDays = 3660): Date | null {
-  for (let i = 1; i <= maxDays; i++) {
-    const candidate = addDays(before, -i);
-    if (occursOn(item, candidate)) {
-      return candidate;
-    }
+const DAYS_PER_MONTH = 30.4368;
+
+/**
+ * The item's own recurrence period, in months — a yearly bill is 12, a
+ * quarterly one (monthly × 3) is 3, a semi-monthly one is 0.5.
+ */
+function periodInMonths(item: RecurringItemInput): number {
+  const interval = Math.max(item.interval, 1);
+  switch (item.frequency) {
+    case 'daily':
+      return interval / DAYS_PER_MONTH;
+    case 'weekly':
+      return (interval * 7) / DAYS_PER_MONTH;
+    case 'monthly':
+      return interval;
+    case 'yearly':
+      return interval * 12;
+    case 'semimonthly':
+      return 0.5;
   }
-  return null;
 }
 
 export interface SinkingFundContribution {
@@ -233,21 +245,27 @@ export interface SinkingFundContribution {
   suggestedMonthlySetAsideCents: number | null;
 }
 
-// Suggests a monthly set-aside for a lump-sum recurring item: amount divided
-// by the months between its previous and next occurrence. Falls back to
-// "today" as the anchor when there's no previous occurrence yet (the item's
-// very first due date). The month count is floored at 1 so a same-day/near-
-// term due date just suggests the whole amount, never an inflated multiple.
+/**
+ * What a lump-sum recurring item costs per month, amortized over its full
+ * period: a 1,200 yearly tax bill is 100 a month.
+ *
+ * Deliberately derived from the recurrence rule rather than from the gap to the
+ * next occurrence. Measuring the remaining gap would make the figure creep
+ * upward every single day as the due date approaches — and for an item whose
+ * first occurrence hasn't happened yet, it would compress the whole bill into
+ * however few months happen to be left. Amortizing over the period gives a
+ * stable number that means "this is what this bill costs me monthly".
+ *
+ * For sub-monthly frequencies this is correctly greater than one occurrence:
+ * a weekly 100 costs about 433 a month.
+ */
 export function computeSinkingFundContribution(item: RecurringItemInput, todayIso: string): SinkingFundContribution {
-  const today = parseISODate(todayIso);
-  const next = findNextOccurrence(item, today);
+  const next = findNextOccurrence(item, parseISODate(todayIso));
   if (!next) {
     return { nextOccurrenceDate: null, suggestedMonthlySetAsideCents: null };
   }
-  const previous = findPreviousOccurrence(item, next) ?? today;
-  const months = Math.max(daysBetween(previous, next) / 30.4368, 1);
   return {
     nextOccurrenceDate: formatISODate(next),
-    suggestedMonthlySetAsideCents: Math.round(item.amountCents / months),
+    suggestedMonthlySetAsideCents: Math.round(item.amountCents / periodInMonths(item)),
   };
 }
