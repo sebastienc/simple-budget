@@ -5,6 +5,7 @@ export interface ProjectionDay {
   items: { id: number; name: string; amountCents: number }[];
   dailyTotalCents: number;
   balanceCents: number;
+  correctionApplied: boolean;
 }
 
 export type ProjectionError = 'starting_balance_not_set' | 'unknown';

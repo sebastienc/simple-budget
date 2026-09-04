@@ -59,5 +59,6 @@
   "NoCorrections": "Aucune correction enregistrée",
   "CorrectionAdded": "Correction ajoutée",
   "CorrectionDeleted": "Correction supprimée",
-  "DeleteCorrectionConfirm": "Supprimer cette correction? Cette action est irréversible."
+  "DeleteCorrectionConfirm": "Supprimer cette correction? Cette action est irréversible.",
+  "BalanceCorrectionApplied": "Correction de solde"
 }

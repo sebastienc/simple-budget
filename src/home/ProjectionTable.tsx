@@ -60,24 +60,28 @@ const ProjectionTable: React.FC<ProjectionTableProps> = ({ accountId, refreshTok
               </tr>
             </thead>
             <tbody>
-              {days.map((day) => (
-                <tr
-                  key={day.date}
-                  className={
-                    day.balanceCents < 0
-                      ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200'
-                      : 'border-b border-gray-100 dark:border-zinc-800'
-                  }
-                >
-                  <td className="py-1.5 pr-4">{formatISODate(day.date, 'MMM d, yyyy')}</td>
-                  <td className="py-1.5 pr-4">
-                    {day.items.length === 0
-                      ? '—'
-                      : day.items.map((item) => `${item.name} (${(item.amountCents / 100).toFixed(2)})`).join(', ')}
-                  </td>
-                  <td className="py-1.5 pr-4 text-right">{(day.balanceCents / 100).toFixed(2)}</td>
-                </tr>
-              ))}
+              {days.map((day) => {
+                const parts = [
+                  ...(day.correctionApplied ? [t('BalanceCorrectionApplied')] : []),
+                  ...day.items.map((item) => `${item.name} (${(item.amountCents / 100).toFixed(2)})`),
+                ];
+                return (
+                  <tr
+                    key={day.date}
+                    className={
+                      day.balanceCents < 0
+                        ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200'
+                        : day.correctionApplied
+                          ? 'bg-blue-50 dark:bg-blue-950/40'
+                          : 'border-b border-gray-100 dark:border-zinc-800'
+                    }
+                  >
+                    <td className="py-1.5 pr-4">{formatISODate(day.date, 'MMM d, yyyy')}</td>
+                    <td className="py-1.5 pr-4">{parts.length === 0 ? '—' : parts.join(', ')}</td>
+                    <td className="py-1.5 pr-4 text-right">{(day.balanceCents / 100).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

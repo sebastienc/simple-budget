@@ -17,6 +17,7 @@ export interface ProjectionDay {
   items: { id: number; name: string; amountCents: number }[];
   dailyTotalCents: number;
   balanceCents: number;
+  correctionApplied: boolean;
 }
 
 export interface BalanceCheckpoint {
@@ -159,12 +160,14 @@ export function projectBalance(params: ProjectBalanceParams): ProjectionDay[] {
   let nextCheckpointIndex = 1;
 
   for (let cursor = new Date(anchor); cursor.getTime() <= to.getTime(); cursor = addDays(cursor, 1)) {
+    let correctionApplied = false;
     while (
       nextCheckpointIndex < sortedCheckpoints.length &&
       parseISODate(sortedCheckpoints[nextCheckpointIndex].date).getTime() <= cursor.getTime()
     ) {
       balanceCents = sortedCheckpoints[nextCheckpointIndex].balanceCents;
       nextCheckpointIndex += 1;
+      correctionApplied = true;
     }
 
     const items = params.items
@@ -179,6 +182,7 @@ export function projectBalance(params: ProjectBalanceParams): ProjectionDay[] {
         items,
         dailyTotalCents,
         balanceCents,
+        correctionApplied,
       });
     }
   }

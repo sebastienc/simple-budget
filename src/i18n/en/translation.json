@@ -59,5 +59,6 @@
   "NoCorrections": "No corrections recorded yet",
   "CorrectionAdded": "Correction added",
   "CorrectionDeleted": "Correction deleted",
-  "DeleteCorrectionConfirm": "Delete this correction? This can't be undone."
+  "DeleteCorrectionConfirm": "Delete this correction? This can't be undone.",
+  "BalanceCorrectionApplied": "Balance correction"
 }
