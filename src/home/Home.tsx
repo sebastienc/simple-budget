@@ -9,6 +9,7 @@ import { useAccounts } from '@/data/useAccounts';
 import { useProjection } from '@/data/useProjection';
 import { useRecurringItems } from '@/data/useRecurringItems';
 import { summarizeProjection } from '@/lib/projection';
+import { summarizeSinkingFunds } from '@/lib/sinkingFund';
 import { todayISO, toISODate } from '@/lib/dates';
 import AccountSwitcher from './AccountSwitcher';
 import AccountHero from './AccountHero';
@@ -43,13 +44,7 @@ const Home: React.FC = () => {
   const summary = useMemo(() => summarizeProjection(days), [days]);
   const chartPoints = useMemo(() => days.map((day) => ({ date: day.date, valueCents: day.balanceCents })), [days]);
 
-  // Set-aside figures carry the sign of the item they came from (a tax bill is
-  // an outflow), but "set aside X per month" is a magnitude — summing the raw
-  // values would ask the user to put aside a negative amount.
-  const sinkingFundTotalCents = useMemo(() => {
-    const contributing = items.filter((item) => item.sinkingFund && item.suggestedMonthlySetAsideCents !== null);
-    return contributing.length > 0 ? contributing.reduce((sum, item) => sum + Math.abs(item.suggestedMonthlySetAsideCents ?? 0), 0) : null;
-  }, [items]);
+  const sinkingFund = useMemo(() => summarizeSinkingFunds(items, todayISO()), [items]);
 
   const bumpProjection = () => setProjectionRefreshToken((token) => token + 1);
 
@@ -110,7 +105,7 @@ const Home: React.FC = () => {
   return (
     <PageLayout toolbar={toolbar}>
       <div className="flex items-start justify-between gap-6">
-        <AccountHero accountName={currentAccount.name} summary={summary} sinkingFundTotalCents={sinkingFundTotalCents} />
+        <AccountHero accountName={currentAccount.name} summary={summary} sinkingFund={sinkingFund} />
         <Button variant="link" size="sm" className="flex-none" onPress={() => setIsEditingAccount(true)}>
           {t('EditAccount')}
         </Button>

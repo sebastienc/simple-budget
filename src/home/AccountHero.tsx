@@ -3,12 +3,13 @@ import { Trans, useTranslation } from 'react-i18next';
 import { formatCents } from '@/lib/money';
 import { formatISODate } from '@/lib/dates';
 import type { ProjectionSummary } from '@/lib/projection';
+import type { SinkingFundSummary } from '@/lib/sinkingFund';
 
 export interface AccountHeroProps {
   accountName: string;
   summary: ProjectionSummary | null;
-  /** Suggested monthly set-aside across sinking-fund items, if any. */
-  sinkingFundTotalCents: number | null;
+  /** The ongoing vs. catch-up figures across sinking-fund items, if any. */
+  sinkingFund: SinkingFundSummary | null;
 }
 
 const DATE_FORMAT = 'd MMMM yyyy';
@@ -17,7 +18,7 @@ const DATE_FORMAT = 'd MMMM yyyy';
  * The answer, in words, before any table. Three states, because the useful
  * thing to say changes completely depending on whether the account runs dry.
  */
-const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinkingFundTotalCents }) => {
+const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinkingFund }) => {
   const { t } = useTranslation();
 
   if (!summary) {
@@ -64,11 +65,25 @@ const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinking
           : t('StaysAboveZero', { date: formatISODate(summary.lastDate, DATE_FORMAT) })}
       </p>
 
-      {shortfall && sinkingFundTotalCents !== null && sinkingFundTotalCents > 0 && (
-        <span className="inline-flex items-center gap-2 self-start rounded-full bg-accent-soft px-3 py-1.5 text-sm font-semibold text-accent">
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          {t('AddPerMonthToCover', { amount: formatCents(sinkingFundTotalCents) })}
-        </span>
+      {/*
+        Two figures, because the gap between them is the point: what the bills
+        cost per month once you've been saving all along, and what it takes from
+        today given you haven't. The second is coloured as a warning only when
+        it's genuinely higher.
+      */}
+      {sinkingFund && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 text-sm font-semibold text-accent">
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            {t('SinkingFundOngoing', { amount: formatCents(sinkingFund.ongoingCents) })}
+          </span>
+          {sinkingFund.isBehind && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-warn-soft px-3 py-1.5 text-sm font-semibold text-warn">
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {t('SinkingFundCatchUp', { amount: formatCents(sinkingFund.catchUpCents) })}
+            </span>
+          )}
+        </div>
       )}
     </header>
   );

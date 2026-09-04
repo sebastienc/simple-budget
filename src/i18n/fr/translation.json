@@ -73,7 +73,6 @@
   "AddFirstItem": "Ajoutez un élément récurrent pour voir où s'en va ce compte.",
   "LandsOn": "{{names}} tombe le {{date}}.",
   "DoesNotRecover": "Le solde ne se rétablit pas de lui-même avant le {{date}}.",
-  "AddPerMonthToCover": "Mettre {{amount}} / mois de côté pour y arriver",
   "InRangeUntil": "{{name}} · jusqu'au {{date}}",
   "WhatsComing": "À venir",
   "NothingComing": "Rien de prévu dans cette période",
@@ -89,5 +88,7 @@
   "StartingBalanceNotSet": "Définissez un solde de départ pour voir une projection.",
   "CouldNotLoadProjection": "Impossible de charger la projection.",
   "LowestPoint": "Point le plus bas",
-  "GoesNegativeOn": "Le solde devient négatif le {{date}}"
+  "GoesNegativeOn": "Le solde devient négatif le {{date}}",
+  "SinkingFundOngoing": "{{amount}} / mois en continu",
+  "SinkingFundCatchUp": "{{amount}} / mois pour rattraper"
 }

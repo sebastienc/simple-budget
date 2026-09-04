@@ -29,6 +29,20 @@ export function toISODate(date: Date): string {
   return format(date, 'yyyy-MM-dd');
 }
 
+const DAYS_PER_MONTH = 30.4368;
+
+/** Whole days from one ISO calendar date to another; negative if `to` is earlier. */
+export function daysBetweenISO(fromISO: string, toISO: string): number {
+  const [fy, fm, fd] = fromISO.split('-').map(Number);
+  const [ty, tm, td] = toISO.split('-').map(Number);
+  return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86_400_000);
+}
+
+/** Months from one ISO calendar date to another, as a fraction. */
+export function monthsBetweenISO(fromISO: string, toISO: string): number {
+  return daysBetweenISO(fromISO, toISO) / DAYS_PER_MONTH;
+}
+
 /**
  * Formats an ISO "YYYY-MM-DD" calendar date for display without any timezone
  * conversion — building the Date from local Y/M/D components (not a UTC

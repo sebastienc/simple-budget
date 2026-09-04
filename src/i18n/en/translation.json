@@ -73,7 +73,6 @@
   "AddFirstItem": "Add a recurring item to see where this account is heading.",
   "LandsOn": "{{names}} lands {{date}}.",
   "DoesNotRecover": "It doesn't recover on its own before {{date}}.",
-  "AddPerMonthToCover": "Set aside {{amount}} / month to cover it",
   "InRangeUntil": "{{name}} · through {{date}}",
   "WhatsComing": "What's coming",
   "NothingComing": "Nothing scheduled in this range",
@@ -89,5 +88,7 @@
   "StartingBalanceNotSet": "Set a starting balance to see a projection.",
   "CouldNotLoadProjection": "The projection couldn't be loaded.",
   "LowestPoint": "Lowest point",
-  "GoesNegativeOn": "Balance goes negative {{date}}"
+  "GoesNegativeOn": "Balance goes negative {{date}}",
+  "SinkingFundOngoing": "{{amount}} / month ongoing",
+  "SinkingFundCatchUp": "{{amount}} / month to catch up"
 }
