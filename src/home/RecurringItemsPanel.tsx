@@ -160,7 +160,10 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
               <div className="flex flex-col">
                 <span className="font-medium">{item.name}</span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {(item.amountCents / 100).toFixed(2)} · {t(`Frequency${item.frequency.charAt(0).toUpperCase()}${item.frequency.slice(1)}`)}
+                  {(item.amountCents / 100).toFixed(2)} ·{' '}
+                  {item.endDate && item.endDate === item.startDate
+                    ? t('OneTimePayment')
+                    : t(`Frequency${item.frequency.charAt(0).toUpperCase()}${item.frequency.slice(1)}`)}
                   {item.frequency === 'semimonthly' && ` (${item.semiMonthlyDay1}, ${item.semiMonthlyDay2})`}
                   {item.sinkingFund && item.nextOccurrenceDate && item.suggestedMonthlySetAsideCents !== null && (
                     <>

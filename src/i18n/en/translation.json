@@ -64,5 +64,6 @@
   "SinkingFund": "Sinking fund",
   "NextOccurrence": "Next due",
   "SuggestedMonthlySetAside": "Suggested monthly set-aside",
-  "SinkingFundTotal": "Sinking fund total: {{amount}}/month across {{count}} items"
+  "SinkingFundTotal": "Sinking fund total: {{amount}}/month across {{count}} items",
+  "OneTimePayment": "One-time payment"
 }

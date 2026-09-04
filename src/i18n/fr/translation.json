@@ -64,5 +64,6 @@
   "SinkingFund": "Fonds de prévoyance",
   "NextOccurrence": "Prochaine échéance",
   "SuggestedMonthlySetAside": "Mise de côté mensuelle suggérée",
-  "SinkingFundTotal": "Total du fonds de prévoyance : {{amount}}/mois ({{count}} éléments)"
+  "SinkingFundTotal": "Total du fonds de prévoyance : {{amount}}/mois ({{count}} éléments)",
+  "OneTimePayment": "Paiement unique"
 }
