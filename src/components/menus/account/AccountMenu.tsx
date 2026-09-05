@@ -1,10 +1,11 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button, Menu, MenuTrigger, Popover, Separator, type Key } from 'react-aria-components';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import AccountMenuItem from './AccountMenuItem';
 import AppearanceControl from './Theme/AppearanceControl';
 import LanguageSelector from './LanguageSelection/LanguageSelector';
+import BackupsDialog from './Backups/BackupsDialog';
 import { useBackup } from '@/data/useBackup';
 import { useToaster } from '@/toast/useToaster';
 
@@ -13,6 +14,7 @@ const AccountMenu = () => {
   const { exportBackup, importBackup, wipeAllData } = useBackup();
   const { addToast } = useToaster();
   const importInputRef = useRef<HTMLInputElement>(null);
+  const [isBackupsOpen, setIsBackupsOpen] = useState(false);
 
   const handleWipe = async () => {
     if (!window.confirm(t('WipeConfirm'))) {
@@ -34,6 +36,8 @@ const AccountMenu = () => {
       exportBackup();
     } else if (key === 'import') {
       importInputRef.current?.click();
+    } else if (key === 'backups') {
+      setIsBackupsOpen(true);
     } else if (key === 'wipe') {
       handleWipe();
     }
@@ -75,6 +79,7 @@ const AccountMenu = () => {
           <Menu className="outline-hidden" onAction={handleAction}>
             <AccountMenuItem id="export">{t('ExportBackup')}</AccountMenuItem>
             <AccountMenuItem id="import">{t('ImportBackup')}</AccountMenuItem>
+            <AccountMenuItem id="backups">{t('BackupsMenuItem')}</AccountMenuItem>
           </Menu>
           <Separator className="mx-3 mt-4 mb-2 h-px border-none bg-rule" />
           <Menu className="outline-hidden" onAction={handleAction}>
@@ -84,6 +89,7 @@ const AccountMenu = () => {
           </Menu>
         </Popover>
       </MenuTrigger>
+      <BackupsDialog isOpen={isBackupsOpen} onOpenChange={setIsBackupsOpen} />
     </div>
   );
 };

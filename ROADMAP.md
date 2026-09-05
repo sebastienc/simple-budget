@@ -10,6 +10,12 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 - [x] Combined / net-worth view across multiple accounts ("All accounts" tab, sums each account's own projection; excludes accounts without a starting balance set)
 - [x] Sort / search recurring items (search by name, sort by name/amount/frequency)
 
+## Backups
+
+- [x] Automatic snapshots into a cloud-synced folder — point the app at a folder Google Drive (or Dropbox, or iCloud) already syncs and it writes a `sqlite.backup()` snapshot there on quit and once a day, keeping the last N *per machine*. Detects the mounted cloud folders on the Mac so nobody has to type `~/Library/CloudStorage/GoogleDrive-…/My Drive` from memory, since the app deliberately has no native folder picker. Never the live database: in WAL mode that's three files that must agree, and letting a sync client copy them out from under SQLite is how synced databases get corrupted.
+- [x] Restore from a listed snapshot — the deliberate hand-off between two machines. The app never merges; restoring is always "this snapshot wins", and it takes a safety copy of the current database first, on the same reasoning as the wipe.
+- [ ] Upload snapshots through the Google Drive API instead of relying on Drive for Desktop. Worth doing if the folder approach proves fragile — it would let the app *confirm* an upload happened rather than hope the sync client got to it, and drop the requirement that Drive be installed and running. Notes for whoever picks it up: use the `drive.file` scope (access limited to files the app itself created, and non-sensitive, so no OAuth verification review); the loopback redirect fits the existing local server, `http://127.0.0.1:5680/api/google/callback`; store the refresh token with Electron `safeStorage`, which is fine since it only ever lives in main. Two traps — the OAuth client secret would sit in a public repo (Google treats Desktop-client secrets as non-secret under PKCE, but it still wants a decision), and **refresh tokens expire after 7 days while the consent screen is in "testing"**, so it has to be published to production or the user re-authorizes every week.
+
 ## Cleanup
 
 - [x] Remove or repurpose the hamburger menu (top-left, "New…/Open…/Save/Save as…/Print…") — leftover template scaffolding, not wired to anything

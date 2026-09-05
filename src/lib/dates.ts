@@ -52,3 +52,15 @@ export function formatISODate(isoDate: string, pattern: string): string {
   const [year, month, day] = isoDate.split('-').map(Number);
   return format(new Date(year, month - 1, day), pattern, { locale: activeLocale() });
 }
+
+/**
+ * Formats a full ISO 8601 instant (one carrying a zone, e.g. a backup's
+ * timestamp) in the reader's local time.
+ *
+ * The opposite of `formatISODate`, which must *not* shift its input: a
+ * calendar date has no time zone, whereas the moment a file was written does,
+ * and converting it is exactly what's wanted.
+ */
+export function formatInstant(iso: string, pattern: string): string {
+  return format(new Date(iso), pattern, { locale: activeLocale() });
+}

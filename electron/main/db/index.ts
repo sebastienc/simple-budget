@@ -41,7 +41,7 @@ export function getDb(): Kysely<Database> {
  * business landing beside somebody's real finances, and the alternative is
  * remembering to delete test accounts afterwards.
  */
-function dbPath(): string {
+export function dbPath(): string {
   return process.env.SIMPLE_BUDGET_DB || join(app.getPath('userData'), 'simple-budget.db');
 }
 

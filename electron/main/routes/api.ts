@@ -16,6 +16,10 @@ import {
   type Frequency,
 } from '../projection';
 import { backupBeforeDestructiveChange, backupDbTo, replaceDbWith } from '../db';
+import { readBackupSettings, writeBackupSettings } from '../backup/settings';
+import { detectSyncedFolders, isWritableDirectory } from '../backup/folders';
+import { listSnapshots, resolveSnapshotPath } from '../backup/snapshots';
+import { snapshotNow } from '../backup/schedule';
 
 export const apiRouter = Router();
 
@@ -421,7 +425,146 @@ apiRouter.post('/wipe', async (_req, res) => {
   res.json({ ok: true, backupPath });
 });
 
+/**
+ * The backup folder, what's in it, and where else it could point.
+ *
+ * One endpoint rather than three because the panel needs all of it at once,
+ * and because the snapshot list is only meaningful next to the folder it was
+ * read from.
+ */
+apiRouter.get('/backup/folder', async (_req, res) => {
+  const settings = await readBackupSettings();
+  const [detected, snapshots] = await Promise.all([detectSyncedFolders(), settings.folder ? listSnapshots(settings.folder) : Promise.resolve([])]);
+
+  res.json({
+    ...settings,
+    // A folder that has since been unmounted, renamed or signed out of. The
+    // app keeps the setting and says so rather than silently switching off.
+    folderAvailable: settings.folder ? await isWritableDirectory(settings.folder) : true,
+    detected,
+    snapshots,
+  });
+});
+
+apiRouter.put('/backup/folder', async (req, res) => {
+  const { folder, keep } = req.body ?? {};
+
+  if (folder !== null && typeof folder !== 'string') {
+    res.status(400).json({ error: 'folder must be a string or null' });
+    return;
+  }
+  if (keep !== undefined && (typeof keep !== 'number' || !Number.isFinite(keep))) {
+    res.status(400).json({ error: 'keep must be a number' });
+    return;
+  }
+
+  const trimmed = typeof folder === 'string' ? folder.trim() : null;
+  if (trimmed && !(await isWritableDirectory(trimmed))) {
+    res.status(400).json({ error: 'folder_not_writable' });
+    return;
+  }
+
+  const current = await readBackupSettings();
+  const settings = await writeBackupSettings({ folder: trimmed || null, keep: keep ?? current.keep });
+
+  // Prove the folder works while the user is still looking at the setting,
+  // rather than leaving them to find out in three weeks that it never did.
+  let snapshotFailed = false;
+  if (settings.folder) {
+    try {
+      await snapshotNow();
+    } catch (error) {
+      console.error('First snapshot after setting the backup folder failed', error);
+      snapshotFailed = true;
+    }
+  }
+
+  res.json({ ...settings, snapshotFailed, snapshots: settings.folder ? await listSnapshots(settings.folder) : [] });
+});
+
+apiRouter.post('/backup/snapshot', async (_req, res) => {
+  const { folder } = await readBackupSettings();
+  if (!folder) {
+    res.status(400).json({ error: 'no_backup_folder' });
+    return;
+  }
+
+  try {
+    const snapshot = await snapshotNow();
+    res.json({ ok: true, snapshot, snapshots: await listSnapshots(folder) });
+  } catch (error) {
+    console.error('Manual snapshot failed', error);
+    res.status(500).json({ error: 'snapshot_failed' });
+  }
+});
+
+/**
+ * Replaces the database with a snapshot from the backup folder.
+ *
+ * This is the deliberate hand-off between machines: the app never merges, so
+ * restoring is always "this snapshot wins, everything here now is replaced".
+ * A safety copy of the current database is taken first, on the same reasoning
+ * as the wipe endpoint — the app takes it rather than trusting that anyone
+ * exported one.
+ */
+apiRouter.post('/backup/restore', async (req, res) => {
+  const { name } = req.body ?? {};
+  if (typeof name !== 'string') {
+    res.status(400).json({ error: 'name is required' });
+    return;
+  }
+
+  const { folder } = await readBackupSettings();
+  if (!folder) {
+    res.status(400).json({ error: 'no_backup_folder' });
+    return;
+  }
+
+  const path = resolveSnapshotPath(folder, name);
+  if (!path || !looksLikeBudgetDatabase(path)) {
+    res.status(400).json({ error: 'invalid_backup_file' });
+    return;
+  }
+
+  let backupPath: string;
+  try {
+    backupPath = await backupBeforeDestructiveChange('before-restore');
+  } catch (error) {
+    console.error('Backup before restore failed; nothing was replaced', error);
+    res.status(500).json({ error: 'backup_failed' });
+    return;
+  }
+
+  try {
+    await replaceDbWith(path);
+    res.json({ ok: true, backupPath });
+  } catch (error) {
+    console.error('Restore failed', error);
+    res.status(500).json({ error: 'restore_failed' });
+  }
+});
+
 const SQLITE_HEADER = 'SQLite format 3\0';
+
+/**
+ * Whether a file is plausibly one of this app's databases.
+ *
+ * Opened read-only and checked for the app's own tables, so restoring can't be
+ * talked into swallowing an unrelated SQLite file — someone else's database
+ * would migrate cleanly and leave the app pointing at empty accounts.
+ */
+function looksLikeBudgetDatabase(path: string): boolean {
+  try {
+    const check = new SqliteDatabase(path, { readonly: true });
+    const tables = check
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('accounts', 'recurring_items')")
+      .all() as { name: string }[];
+    check.close();
+    return tables.length === 2;
+  } catch {
+    return false;
+  }
+}
 
 apiRouter.get('/backup/export', async (_req, res) => {
   const tempPath = join(tmpdir(), `simple-budget-export-${Date.now()}.db`);
@@ -450,13 +593,7 @@ apiRouter.post('/backup/import', express.raw({ type: '*/*', limit: '50mb' }), as
   await writeFile(tempPath, req.body);
 
   try {
-    const check = new SqliteDatabase(tempPath, { readonly: true });
-    const tables = check
-      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('accounts', 'recurring_items')")
-      .all() as { name: string }[];
-    check.close();
-
-    if (tables.length !== 2) {
+    if (!looksLikeBudgetDatabase(tempPath)) {
       await unlink(tempPath).catch(() => {});
       res.status(400).json({ error: 'invalid_backup_file' });
       return;
