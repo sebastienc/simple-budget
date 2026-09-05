@@ -5,7 +5,7 @@ import { writeFile, unlink } from 'fs/promises';
 import SqliteDatabase from 'better-sqlite3';
 import type { Selectable } from 'kysely';
 import type { RecurringItemsTable } from '../db/schema';
-import { accountsQueries, recurringItemsQueries, balanceCheckpointsQueries } from '../db/queries';
+import { accountsQueries, recurringItemsQueries, balanceCheckpointsQueries, wipeAllData } from '../db/queries';
 import { toAccountJson, toRecurringItemJson, toRecurringItemInput, toBalanceCheckpointJson } from './mappers';
 import {
   projectBalance,
@@ -15,7 +15,7 @@ import {
   computeCorrectionAccuracy,
   type Frequency,
 } from '../projection';
-import { backupDbTo, replaceDbWith } from '../db';
+import { backupBeforeDestructiveChange, backupDbTo, replaceDbWith } from '../db';
 
 export const apiRouter = Router();
 
@@ -401,6 +401,24 @@ apiRouter.get('/net-worth', async (req, res) => {
     excludedAccountIds,
     days: sumProjections(seriesList),
   });
+});
+
+apiRouter.post('/wipe', async (_req, res) => {
+  // The backup is taken first and its failure aborts the wipe: the point of
+  // this endpoint is that data cannot be destroyed without a copy existing on
+  // disk. A browser download can't be confirmed from the page, so the app takes
+  // the snapshot itself rather than trusting that the user exported one.
+  let backupPath: string;
+  try {
+    backupPath = await backupBeforeDestructiveChange('before-wipe');
+  } catch (error) {
+    console.error('Backup before wipe failed; nothing was deleted', error);
+    res.status(500).json({ error: 'backup_failed' });
+    return;
+  }
+
+  await wipeAllData();
+  res.json({ ok: true, backupPath });
 });
 
 const SQLITE_HEADER = 'SQLite format 3\0';

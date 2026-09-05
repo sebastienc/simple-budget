@@ -3,6 +3,12 @@ export interface ImportBackupResult {
   error?: string;
 }
 
+export interface WipeResult {
+  ok: boolean;
+  /** Where the app saved a snapshot before deleting anything. */
+  backupPath?: string;
+}
+
 export function useBackup() {
   const exportBackup = () => {
     window.location.href = '/api/backup/export';
@@ -21,5 +27,13 @@ export function useBackup() {
     return { ok: true };
   };
 
-  return { exportBackup, importBackup };
+  const wipeAllData = async (): Promise<WipeResult> => {
+    const response = await fetch('/api/wipe', { method: 'POST' });
+    if (!response.ok) {
+      return { ok: false };
+    }
+    return response.json();
+  };
+
+  return { exportBackup, importBackup, wipeAllData };
 }

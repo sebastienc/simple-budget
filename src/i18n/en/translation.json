@@ -98,5 +98,10 @@
   "ForecastExact": "forecast was exact",
   "LastThreeMonths": "Last 3 months",
   "NextThreeMonths": "Next 3 months",
-  "InThisPeriod": "In this period"
+  "InThisPeriod": "In this period",
+  "WipeAllData": "Erase all data",
+  "WipeConfirm": "This permanently deletes every account, recurring item and balance correction.\n\nA backup is saved automatically first, so nothing is lost — but the app will be empty.\n\nContinue?",
+  "WipeDone": "All data erased",
+  "WipeBackupSavedTo": "Backup saved to {{path}}",
+  "WipeFailed": "Nothing was erased — the backup could not be saved"
 }

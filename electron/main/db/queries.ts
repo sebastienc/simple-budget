@@ -111,3 +111,18 @@ export const balanceCheckpointsQueries = {
       .executeTakeFirstOrThrow(),
   delete: (id: number) => getDb().deleteFrom('balance_checkpoints').where('id', '=', id).execute(),
 };
+
+/**
+ * Deletes every row the user owns, in dependency order inside one transaction —
+ * either the whole thing is gone or none of it is. Schema and migration history
+ * are left alone, so the app carries on against an empty database rather than
+ * needing to re-migrate.
+ */
+export const wipeAllData = () =>
+  getDb()
+    .transaction()
+    .execute(async (trx) => {
+      await trx.deleteFrom('balance_checkpoints').execute();
+      await trx.deleteFrom('recurring_items').execute();
+      await trx.deleteFrom('accounts').execute();
+    });

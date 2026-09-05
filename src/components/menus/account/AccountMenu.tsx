@@ -10,15 +10,32 @@ import { useToaster } from '@/toast/useToaster';
 
 const AccountMenu = () => {
   const { t } = useTranslation();
-  const { exportBackup, importBackup } = useBackup();
+  const { exportBackup, importBackup, wipeAllData } = useBackup();
   const { addToast } = useToaster();
   const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleWipe = async () => {
+    if (!window.confirm(t('WipeConfirm'))) {
+      return;
+    }
+    const result = await wipeAllData();
+    if (!result.ok) {
+      addToast(t('WipeFailed'));
+      return;
+    }
+    // Reloading rather than refetching: every hook in the tree is holding data
+    // that no longer exists.
+    window.alert(`${t('WipeDone')}\n\n${t('WipeBackupSavedTo', { path: result.backupPath })}`);
+    window.location.reload();
+  };
 
   const handleAction = (key: Key) => {
     if (key === 'export') {
       exportBackup();
     } else if (key === 'import') {
       importInputRef.current?.click();
+    } else if (key === 'wipe') {
+      handleWipe();
     }
   };
 
@@ -60,6 +77,12 @@ const AccountMenu = () => {
           <Menu className="outline-hidden" onAction={handleAction}>
             <AccountMenuItem id="export">{t('ExportBackup')}</AccountMenuItem>
             <AccountMenuItem id="import">{t('ImportBackup')}</AccountMenuItem>
+          </Menu>
+          <Separator className="mx-3 mt-4 mb-2 h-px border-none bg-rule" />
+          <Menu className="outline-hidden" onAction={handleAction}>
+            <AccountMenuItem id="wipe" className="text-danger focus:bg-danger focus:text-surface">
+              {t('WipeAllData')}
+            </AccountMenuItem>
           </Menu>
         </Popover>
       </MenuTrigger>

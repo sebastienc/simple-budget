@@ -98,5 +98,10 @@
   "ForecastExact": "projection exacte",
   "LastThreeMonths": "3 derniers mois",
   "NextThreeMonths": "3 prochains mois",
-  "InThisPeriod": "Dans cette période"
+  "InThisPeriod": "Dans cette période",
+  "WipeAllData": "Effacer toutes les données",
+  "WipeConfirm": "Ceci supprime définitivement tous les comptes, éléments récurrents et corrections de solde.\n\nUne sauvegarde est créée automatiquement avant, donc rien n'est perdu — mais l'application sera vide.\n\nContinuer?",
+  "WipeDone": "Toutes les données ont été effacées",
+  "WipeBackupSavedTo": "Sauvegarde enregistrée dans {{path}}",
+  "WipeFailed": "Rien n'a été effacé — la sauvegarde n'a pas pu être créée"
 }

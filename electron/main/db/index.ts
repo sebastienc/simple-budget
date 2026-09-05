@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 import { mkdir, rm, copyFile } from 'fs/promises';
 import SqliteDatabase from 'better-sqlite3';
 import { Kysely, SqliteDialect } from 'kysely';
@@ -77,6 +77,26 @@ export async function backupDbTo(destinationPath: string): Promise<void> {
     throw new Error('Database not initialized. Call initDb() first.');
   }
   await sqlite.backup(destinationPath);
+}
+
+/**
+ * Snapshots the database beside itself and returns where it landed.
+ *
+ * Used to make wiping safe: the app takes this itself rather than trusting the
+ * user to have downloaded a backup, because a browser download can't be
+ * confirmed from the page and "I thought I'd exported it" is not a recoverable
+ * position to be in.
+ */
+export async function backupBeforeDestructiveChange(label: string): Promise<string> {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const directory = join(dirname(dbPath()), 'backups');
+  await mkdir(directory, { recursive: true });
+
+  // Absolute: this path is shown to the user so they can go and find the file,
+  // and SIMPLE_BUDGET_DB may well be relative.
+  const destination = resolve(directory, `simple-budget-${label}-${stamp}.db`);
+  await backupDbTo(destination);
+  return destination;
 }
 
 export async function replaceDbWith(sourcePath: string): Promise<void> {
