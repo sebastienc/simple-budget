@@ -27,3 +27,6 @@ release
 
 # throwaway database used by npm run dev:demo
 .demo
+
+# local-only seeds containing real financial figures — never commit
+scripts/*.local.mjs
