@@ -10,7 +10,32 @@ Not a category-envelope budget or a bank-synced transaction ledger — it's a da
 - **Recurring items** — daily, weekly, monthly, yearly, or semi-monthly (two configurable days per month, e.g. the 15th and last day, with automatic weekend-to-Friday shifting to match real payroll schedules).
 - **Projection table** — a day-by-day running balance over any date range, with negative-balance days flagged.
 - **Backup / restore** — export a full SQLite snapshot, or import one to restore (Settings menu).
+- **Automatic backups** — point the app at a folder your cloud client already syncs (Google Drive, Dropbox, iCloud) and it writes a snapshot there on quit and once a day, keeping the last N per machine. Restoring one is also how you hand the budget between two computers.
 - English and French (`en-US` / `fr-CA`) UI.
+
+## Installing
+
+Grab the `.dmg` from [Releases](https://github.com/sebastienc/simple-budget/releases), or build one yourself:
+
+```sh
+npm install
+npm run dist       # → release/Simple Budget-<version>-arm64.dmg
+```
+
+Open the DMG and drag **Simple Budget** to Applications. Apple Silicon only — the DMG is arm64.
+
+The app is **not code-signed** (that needs a paid Apple Developer ID). A DMG you built yourself opens
+normally, because macOS only quarantines files that were *downloaded*. One you downloaded from
+Releases will be blocked on first launch with "Simple Budget is damaged and can't be opened" — which
+is Gatekeeper's misleading way of saying "unsigned". Clear the quarantine flag once:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Simple Budget.app"
+```
+
+Your data lives at `~/Library/Application Support/Simple Budget/simple-budget.db` and is never sent
+anywhere. It survives reinstalling the app; to move it to another Mac, use the automatic backups
+above, or Export/Import from the Settings menu.
 
 ## Tech stack
 
@@ -50,6 +75,18 @@ anything typed into the UI, and it refuses to run against a database that
 already has accounts (`--force` overrides). Delete `.demo/` to start over.
 
 `SIMPLE_BUDGET_DB` sets the database path for any command, not just `dev:demo`.
+
+### Releases
+
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) — `feat:`, `fix:`,
+`build:` and so on. [release-please](https://github.com/googleapis/release-please) reads them and keeps
+a "chore(main): release x.y.z" pull request open against `main`, with the version bump and the
+generated changelog. **Merging that PR is what cuts a release:** it tags the commit, creates the GitHub
+release, and then a macOS runner builds the DMG and attaches it.
+
+So the version in `package.json` is not edited by hand — the type of the commits since the last
+release decides it (`fix:` → patch, `feat:` → minor, a `!` or `BREAKING CHANGE:` footer → major). To
+override it for one release, put `Release-As: 1.2.3` in a commit footer.
 
 ## Project layout
 

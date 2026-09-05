@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Keeps a "chore(main): release x.y.z" PR up to date with every conventional
+  # commit landing on main. Merging that PR is what actually cuts the release:
+  # this job then tags it and creates the GitHub release.
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # Attaches the installer to whatever release the job above just created.
+  #
+  # Deliberately a dependent job rather than a separate workflow triggered by
+  # `release: published` — a release created with the default GITHUB_TOKEN does
+  # not trigger further workflows, so that one would silently never run.
+  dmg:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    # arm64. The DMG is named accordingly, and won't run on an Intel Mac.
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The tag, not the branch: main may have moved on since, and the
+          # installer has to match the version being released.
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the DMG
+        run: npm run dist
+        env:
+          # There is no Developer ID certificate here. Without this,
+          # electron-builder hunts for one and fails the build rather than
+          # producing the unsigned app we actually want.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Attach it to the release
+        run: gh release upload "$TAG" release/*.dmg --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
