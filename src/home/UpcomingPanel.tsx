@@ -15,7 +15,10 @@ export interface UpcomingPanelProps {
 
 const MAX_EVENTS = 6;
 
-const row = 'flex w-full items-baseline justify-between gap-3 border-b border-rule py-2.5 text-left';
+const row = 'flex w-full items-baseline justify-between gap-3 py-2.5 text-left';
+// The rule belongs to whatever wraps a day, not to the pieces inside it: a
+// collapsed DisclosurePanel still renders, so a border on both drew two lines.
+const rowRule = 'border-b border-rule';
 
 /**
  * What to call a day.
@@ -70,11 +73,11 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
         // are already the whole story — so it gets no disclosure to open. The
         // padding keeps it aligned with the days that do.
         event.items.length === 1 ? (
-          <div key={event.date} className={clsx(row, 'pl-6')}>
+          <div key={event.date} className={clsx(row, rowRule, 'pl-6')}>
             <DaySummary event={event} t={t} />
           </div>
         ) : (
-          <Disclosure key={event.date}>
+          <Disclosure key={event.date} className={rowRule}>
             {({ isExpanded }) => (
               <>
                 <Heading className="contents">
@@ -86,7 +89,7 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
 
                 {/* The net on the row above hides its parts: a +2,200 day can be
                     +2,700 of pay against a −500 payment. This is where you see that. */}
-                <DisclosurePanel className="border-b border-rule pb-2">
+                <DisclosurePanel className="pb-2">
                   {event.items.map((item) => (
                     <div key={item.id} className="flex items-baseline justify-between gap-3 py-1 pl-6">
                       <span className="truncate text-xs text-ink-2">{item.name}</span>
