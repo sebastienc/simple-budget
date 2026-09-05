@@ -269,3 +269,56 @@ export function computeSinkingFundContribution(item: RecurringItemInput, todayIs
     suggestedMonthlySetAsideCents: Math.round(item.amountCents / periodInMonths(item)),
   };
 }
+
+export interface CorrectionAccuracy {
+  date: string;
+  /** What the correction recorded as the real balance. */
+  actualCents: number;
+  /** What the forecast predicted for that same moment. */
+  projectedCents: number;
+  /** projected − actual. Positive means the forecast ran high: there is less money than it said. */
+  driftCents: number;
+  daysSincePrevious: number;
+}
+
+/**
+ * How far the forecast had drifted by the time each correction was recorded.
+ *
+ * `projectBalance` snaps to a correction and carries on, so the line always
+ * passes through every recorded actual and the error disappears at the very
+ * moment it becomes knowable. This recovers it by re-running the forecast from
+ * the previous correction alone and comparing.
+ *
+ * The one subtlety, and the reason this is tested first: a correction records
+ * the balance at the START of its day, before that day's items land — that is
+ * the order `projectBalance` snaps in. So the comparable predicted figure is
+ * the close of the day BEFORE the correction, not of the correction's own day.
+ * Comparing against the wrong one is silently off by exactly one day's items,
+ * which on a mortgage day is a four-figure error that still looks plausible.
+ *
+ * The earliest checkpoint is skipped: it is the origin, with nothing behind it
+ * to have drifted from.
+ */
+export function computeCorrectionAccuracy(checkpoints: BalanceCheckpoint[], items: RecurringItemInput[]): CorrectionAccuracy[] {
+  const sorted = [...checkpoints].sort((a, b) => a.date.localeCompare(b.date));
+  const accuracy: CorrectionAccuracy[] = [];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const previous = sorted[i - 1];
+    const current = sorted[i];
+
+    const dayBefore = formatISODate(addDays(parseISODate(current.date), -1));
+    const days = projectBalance({ checkpoints: [previous], items, from: previous.date, to: dayBefore });
+    const projectedCents = days.length > 0 ? days[days.length - 1].balanceCents : previous.balanceCents;
+
+    accuracy.push({
+      date: current.date,
+      actualCents: current.balanceCents,
+      projectedCents,
+      driftCents: projectedCents - current.balanceCents,
+      daysSincePrevious: daysBetween(parseISODate(previous.date), parseISODate(current.date)),
+    });
+  }
+
+  return accuracy;
+}

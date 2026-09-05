@@ -5,6 +5,11 @@ export interface BalanceCheckpoint {
   accountId: number;
   date: string;
   balanceCents: number;
+  /** What the forecast predicted for this date; null on the earliest correction. */
+  projectedCents: number | null;
+  /** projected − actual. Positive means the forecast ran high. */
+  driftCents: number | null;
+  daysSincePrevious: number | null;
   createdAt: string;
 }
 

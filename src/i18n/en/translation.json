@@ -61,7 +61,8 @@
   "SinkingFund": "Sinking fund",
   "NextOccurrence": "Next due",
   "SuggestedMonthlySetAside": "Suggested monthly set-aside",
-  "SinkingFundTotal": "Sinking fund total: {{amount}}/month across {{count}} items",
+  "SinkingFundTotal_one": "Sinking fund total: {{amount}}/month across {{count}} item",
+  "SinkingFundTotal_other": "Sinking fund total: {{amount}}/month across {{count}} items",
   "OneTimePayment": "One-time payment",
   "ShortByOn": "Short by <amount>{{amount}}</amount> on {{date}}.",
   "LowestPointOn": "Lowest point {{amount}} on {{date}}.",
@@ -86,5 +87,13 @@
   "LowestPoint": "Lowest point",
   "GoesNegativeOn": "Balance goes negative {{date}}",
   "SinkingFundOngoing": "{{amount}} / month ongoing",
-  "SinkingFundCatchUp": "{{amount}} / month to catch up"
+  "SinkingFundCatchUp": "{{amount}} / month to catch up",
+  "ForecastRanHigh": "forecast ran {{amount}} high",
+  "ForecastRanLow": "forecast ran {{amount}} low",
+  "ForecastRunsHighPerMonth_one": "running {{amount}} / month high over {{count}} correction",
+  "ForecastRunsHighPerMonth_other": "running {{amount}} / month high over {{count}} corrections",
+  "ForecastRunsLowPerMonth_one": "running {{amount}} / month low over {{count}} correction",
+  "ForecastRunsLowPerMonth_other": "running {{amount}} / month low over {{count}} corrections",
+  "AccuracyStartingPoint": "starting point",
+  "ForecastExact": "forecast was exact"
 }

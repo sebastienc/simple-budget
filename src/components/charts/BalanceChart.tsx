@@ -8,8 +8,20 @@ export interface BalancePoint {
   valueCents: number;
 }
 
+export interface BalanceMarker {
+  date: string;
+  /** projected − actual on that date; positive means the forecast ran high. */
+  driftCents: number | null;
+}
+
 export interface BalanceChartProps {
   points: BalancePoint[];
+  /**
+   * Dates carrying a recorded balance correction. Only those falling inside the
+   * plotted window are drawn — corrections are in the past, so nothing shows
+   * until the range is moved back over them.
+   */
+  markers?: BalanceMarker[];
   ariaLabel: string;
   className?: string;
 }
@@ -91,7 +103,15 @@ function splitBySign(vertices: Vertex[]): Run[] {
   return runs;
 }
 
-const BalanceChart: React.FC<BalanceChartProps> = ({ points, ariaLabel, className }) => {
+function markerLabel(marker: BalanceMarker): string {
+  if (marker.driftCents === null) {
+    return marker.date;
+  }
+  const direction = marker.driftCents > 0 ? '+' : '';
+  return `${marker.date} · ${direction}${(marker.driftCents / 100).toFixed(2)}`;
+}
+
+const BalanceChart: React.FC<BalanceChartProps> = ({ points, markers, ariaLabel, className }) => {
   const model = useMemo(() => {
     if (points.length === 0) {
       return null;
@@ -165,6 +185,28 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ points, ariaLabel, classNam
         ))}
 
         <circle cx={xAt(lowestIndex)} cy={yAt(lowest.valueCents)} r={3.5} fill={lowest.valueCents < 0 ? 'var(--warn)' : 'var(--accent)'} />
+
+        {(markers ?? []).map((marker) => {
+          const index = points.findIndex((point) => point.date === marker.date);
+          if (index === -1) {
+            return null;
+          }
+          const ranHigh = marker.driftCents !== null && marker.driftCents > 0;
+          return (
+            <circle
+              key={marker.date}
+              cx={xAt(index)}
+              cy={yAt(points[index].valueCents)}
+              r={5}
+              fill="var(--surface-raised)"
+              stroke={ranHigh ? 'var(--warn)' : 'var(--accent)'}
+              strokeWidth={2.5}
+            >
+              {/* A native tooltip: no JS, no tooltip library. */}
+              <title>{markerLabel(marker)}</title>
+            </circle>
+          );
+        })}
 
         {monthTicks.map(({ point, index }) => (
           <text key={point.date} x={xAt(index)} y={H - PAD_B + 22} textAnchor={index === 0 ? 'start' : 'middle'} fill="var(--ink-3)" className="font-mono" fontSize={10}>

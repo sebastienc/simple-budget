@@ -27,7 +27,6 @@ const monthsOut = (months, day) => {
   d.setDate(Math.min(day, lastDay));
   return iso(d);
 };
-const startOfThisMonth = iso(new Date(today.getFullYear(), today.getMonth(), 1));
 const monthsAgo = (months, day) => monthsOut(-months, day);
 const daysAgo = (days) => {
   const d = new Date(today);
@@ -62,28 +61,39 @@ async function waitForApp(timeoutMs = 30_000) {
 }
 
 /*
- * Opens the account six months back and corrects it to a known balance a few
- * days ago — which is how the app is meant to be used, and the only ordering
- * the API accepts: a correction may not predate the starting balance.
+ * Opens the account six months back and corrects it a few days ago — which is
+ * how the app is meant to be used, and the only ordering the API accepts: a
+ * correction may not predate the starting balance.
+ *
+ * The corrected figure is derived from what the app itself projects for that
+ * day, nudged by `driftCents`. Hand-picking a "current balance" instead makes
+ * it contradict the recurring items, and the accuracy feature then reports a
+ * drift of thousands a month — technically correct, and useless as demo data.
  */
-async function createAccount(name, openedCents, currentCents, items) {
+async function createAccount(name, openedCents, items, driftCents) {
   const account = await api('POST', '/accounts', { name });
   await api('PATCH', `/accounts/${account.id}`, { startingBalanceCents: openedCents, startingBalanceDate: monthsAgo(6, 1) });
   for (const item of items) {
     await api('POST', `/accounts/${account.id}/recurring-items`, item);
   }
-  await api('POST', `/accounts/${account.id}/checkpoints`, { date: daysAgo(3), balanceCents: currentCents });
+
+  const correctedOn = daysAgo(3);
+  const [projected] = await api('GET', `/accounts/${account.id}/projection?from=${correctedOn}&to=${correctedOn}`);
+  await api('POST', `/accounts/${account.id}/checkpoints`, { date: correctedOn, balanceCents: projected.balanceCents - driftCents });
+
   console.log(`  ${name}: ${items.length} recurring items, 1 balance correction`);
   return account;
 }
 
 const chequing = [
-  { name: 'Pay', amountCents: 284750, frequency: 'semimonthly', interval: 1, startDate: startOfThisMonth, semiMonthlyDay1: 15, semiMonthlyDay2: 30 },
+  { name: 'Pay', amountCents: 284750, frequency: 'semimonthly', interval: 1, startDate: monthsAgo(6, 1), semiMonthlyDay1: 15, semiMonthlyDay2: 30 },
   { name: 'Transfer to Joint', amountCents: -260000, frequency: 'monthly', interval: 1, startDate: monthsAgo(6, 20) },
   { name: 'Groceries', amountCents: -18500, frequency: 'weekly', interval: 1, startDate: monthsAgo(6, 6) },
   { name: 'Hydro', amountCents: -11840, frequency: 'monthly', interval: 1, startDate: monthsAgo(6, 8) },
   { name: 'Internet', amountCents: -8995, frequency: 'monthly', interval: 1, startDate: monthsAgo(6, 3) },
   { name: 'Phone', amountCents: -6200, frequency: 'monthly', interval: 1, startDate: monthsAgo(6, 12) },
+  { name: 'Credit card', amountCents: -120000, frequency: 'monthly', interval: 1, startDate: monthsAgo(6, 2) },
+  { name: 'Savings transfer', amountCents: -60000, frequency: 'monthly', interval: 1, startDate: monthsAgo(6, 21) },
   // a yearly bill that has been running a while — its set-aside is already on track
   { name: 'Car insurance', amountCents: -84000, frequency: 'yearly', interval: 1, startDate: monthsAgo(11, 22), sinkingFund: true },
 ];
@@ -112,8 +122,10 @@ const run = async () => {
     process.exit(1);
   }
 
-  await createAccount('Chequing', 250000, 341280, chequing);
-  await createAccount('Joint', 280000, 324000, joint);
+  // Small, believable drift: the forecast ran a little low on one and a little
+  // high on the other, which is what a real reconciliation looks like.
+  await createAccount('Chequing', 250000, chequing, -18000);
+  await createAccount('Joint', 280000, joint, 12000);
 
   console.log('\nDone. Chequing stays healthy; Joint takes a one-time hit in a month and then goes under when the two tax bills land.');
 };

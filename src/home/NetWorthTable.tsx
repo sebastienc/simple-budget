@@ -33,7 +33,7 @@ const NetWorthTable: React.FC = () => {
 
   return (
     <>
-      <AccountHero accountName={t('NetWorth')} summary={summary} sinkingFund={null} />
+      <AccountHero accountName={t('NetWorth')} summary={summary} sinkingFund={null} accuracy={null} />
 
       {excludedNames.length > 0 && <p className="-mt-6 text-sm text-ink-3">{t('ExcludesAccounts', { names: excludedNames.join(', ') })}</p>}
 

@@ -13,7 +13,7 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 ## Cleanup
 
 - [x] Remove or repurpose the hamburger menu (top-left, "New…/Open…/Save/Save as…/Print…") — leftover template scaffolding, not wired to anything
-- [ ] Review the French copy in `src/i18n/fr/translation.json`. Most of it was written by Claude and wants a native Québécois eye, particularly the financial phrasing added during the redesign: `ShortByOn` ("Découvert de…"), `SinkingFundCatchUp` ("pour rattraper"), `SinkingFundOngoing` ("en continu"), `SinkingFund` ("Fonds de prévoyance"), `SuggestedMonthlySetAside` ("Mise de côté mensuelle suggérée") and `DoesNotRecover`. Nothing is broken — the keys resolve and fit their containers — it's the register and terminology that need confirming.
+- [ ] Review the French copy in `src/i18n/fr/translation.json`. Most of it was written by Claude and wants a native Québécois eye, particularly the financial phrasing added during the redesign: `ShortByOn` ("Découvert de…"), `SinkingFundCatchUp` ("pour rattraper"), `SinkingFundOngoing` ("en continu"), `SinkingFund` ("Fonds de prévoyance"), `SuggestedMonthlySetAside` ("Mise de côté mensuelle suggérée"), `DoesNotRecover`, and the forecast-accuracy wording added since: `ForecastRunsHighPerMonth` ("trop optimiste"), `ForecastRunsLowPerMonth` ("trop prudente"), `ForecastRanHigh`/`ForecastRanLow` ("projection trop haute/basse") and `ForecastExact`. Nothing is broken — the keys resolve and fit their containers — it's the register and terminology that need confirming.
 
 ## From the original spreadsheet
 

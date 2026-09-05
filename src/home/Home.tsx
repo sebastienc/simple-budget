@@ -10,6 +10,8 @@ import { useProjection } from '@/data/useProjection';
 import { useRecurringItems } from '@/data/useRecurringItems';
 import { summarizeProjection } from '@/lib/projection';
 import { summarizeSinkingFunds } from '@/lib/sinkingFund';
+import { summarizeAccuracy } from '@/lib/accuracy';
+import { useBalanceCheckpoints } from '@/data/useBalanceCheckpoints';
 import { todayISO, toISODate } from '@/lib/dates';
 import AccountSwitcher from './AccountSwitcher';
 import AccountHero from './AccountHero';
@@ -45,6 +47,12 @@ const Home: React.FC = () => {
   const chartPoints = useMemo(() => days.map((day) => ({ date: day.date, valueCents: day.balanceCents })), [days]);
 
   const sinkingFund = useMemo(() => summarizeSinkingFunds(items, todayISO()), [items]);
+
+  // Corrections are the record of what actually happened; the hero uses them to
+  // qualify its own headline, and the chart marks where they fall.
+  const { checkpoints } = useBalanceCheckpoints(accountId);
+  const accuracy = useMemo(() => summarizeAccuracy(checkpoints), [checkpoints]);
+  const chartMarkers = useMemo(() => checkpoints.map((c) => ({ date: c.date, driftCents: c.driftCents })), [checkpoints]);
 
   const bumpProjection = () => setProjectionRefreshToken((token) => token + 1);
 
@@ -105,7 +113,7 @@ const Home: React.FC = () => {
   return (
     <PageLayout toolbar={toolbar}>
       <div className="flex items-start justify-between gap-6">
-        <AccountHero accountName={currentAccount.name} summary={summary} sinkingFund={sinkingFund} />
+        <AccountHero accountName={currentAccount.name} summary={summary} sinkingFund={sinkingFund} accuracy={accuracy} />
         <Button variant="link" size="sm" className="flex-none" onPress={() => setIsEditingAccount(true)}>
           {t('EditAccount')}
         </Button>
@@ -115,7 +123,7 @@ const Home: React.FC = () => {
 
       <div className="flex flex-col gap-3">
         <RangeControl from={from} to={to} onFromChange={setFrom} onToChange={setTo} />
-        <BalanceChart points={chartPoints} ariaLabel={t('Projection')} />
+        <BalanceChart points={chartPoints} markers={chartMarkers} ariaLabel={t('Projection')} />
       </div>
 
       <div className="grid gap-10 md:grid-cols-[1.15fr_1fr]">

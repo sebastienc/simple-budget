@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { useToaster } from '@/toast/useToaster';
 import Panel from '@/components/ui/Panel';
 import Button from '@/components/ui/Button';
 import Money from '@/components/ui/Money';
 import TextField from '@/components/ui/TextField';
-import { parseAmountToCents } from '@/lib/money';
+import { formatCents, parseAmountToCents } from '@/lib/money';
 import { formatISODate, todayISO } from '@/lib/dates';
+import { summarizeAccuracy } from '@/lib/accuracy';
 import { useBalanceCheckpoints, type BalanceCheckpoint } from '@/data/useBalanceCheckpoints';
 
 export interface BalanceCheckpointsPanelProps {
@@ -23,6 +25,7 @@ const BalanceCheckpointsPanel: React.FC<BalanceCheckpointsPanelProps> = ({ accou
   const [balance, setBalance] = useState('');
 
   const sortedCheckpoints = [...checkpoints].sort((a, b) => b.date.localeCompare(a.date));
+  const accuracy = summarizeAccuracy(checkpoints);
 
   const handleAdd = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -45,6 +48,14 @@ const BalanceCheckpointsPanel: React.FC<BalanceCheckpointsPanelProps> = ({ accou
   return (
     <Panel
       title={t('BalanceCorrections')}
+      note={
+        accuracy
+          ? t(accuracy.runsHigh ? 'ForecastRunsHighPerMonth' : 'ForecastRunsLowPerMonth', {
+              amount: formatCents(Math.abs(accuracy.driftPerMonthCents)),
+              count: accuracy.measuredCount,
+            })
+          : undefined
+      }
       action={
         !isAdding ? (
           <Button variant="ghost" size="sm" onPress={() => setIsAdding(true)}>
@@ -72,7 +83,16 @@ const BalanceCheckpointsPanel: React.FC<BalanceCheckpointsPanelProps> = ({ accou
 
       {sortedCheckpoints.map((checkpoint) => (
         <div key={checkpoint.id} className="flex items-baseline justify-between gap-4 border-b border-rule py-2.5">
-          <span className="font-mono text-xs text-ink-2">{formatISODate(checkpoint.date, 'd MMMM yyyy')}</span>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="font-mono text-xs text-ink-2">{formatISODate(checkpoint.date, 'd MMMM yyyy')}</span>
+            <span className={clsx('text-xs', checkpoint.driftCents !== null && checkpoint.driftCents > 0 ? 'text-warn' : 'text-ink-3')}>
+              {checkpoint.driftCents === null
+                ? t('AccuracyStartingPoint')
+                : checkpoint.driftCents === 0
+                  ? t('ForecastExact')
+                  : t(checkpoint.driftCents > 0 ? 'ForecastRanHigh' : 'ForecastRanLow', { amount: formatCents(Math.abs(checkpoint.driftCents)) })}
+            </span>
+          </div>
           <div className="flex flex-none items-baseline gap-3">
             <Money cents={checkpoint.balanceCents} autoTone className="text-sm" />
             <Button variant="link" size="sm" onPress={() => handleDelete(checkpoint)}>

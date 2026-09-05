@@ -12,6 +12,7 @@ import {
   sumProjections,
   mergeCheckpoints,
   computeSinkingFundContribution,
+  computeCorrectionAccuracy,
   type Frequency,
 } from '../projection';
 import { backupDbTo, replaceDbWith } from '../db';
@@ -249,7 +250,33 @@ apiRouter.get('/accounts/:id/checkpoints', async (req, res) => {
     res.status(404).json({ error: 'account not found' });
     return;
   }
-  res.json((await balanceCheckpointsQueries.list(id as number)).map(toBalanceCheckpointJson));
+  const rows = await balanceCheckpointsQueries.list(id as number);
+
+  // How far the forecast had drifted by the time each correction was recorded.
+  // The starting balance takes part as the origin, so the first explicit
+  // correction is measured against it rather than being left unmeasured.
+  const accuracy = account.starting_balance_date
+    ? computeCorrectionAccuracy(
+        mergeCheckpoints(
+          { date: account.starting_balance_date, balanceCents: account.starting_balance_cents },
+          rows.map((row) => ({ date: row.date, balanceCents: row.balance_cents })),
+        ),
+        (await recurringItemsQueries.list(id as number)).map(toRecurringItemInput),
+      )
+    : [];
+  const byDate = new Map(accuracy.map((entry) => [entry.date, entry]));
+
+  res.json(
+    rows.map((row) => {
+      const entry = byDate.get(row.date);
+      return {
+        ...toBalanceCheckpointJson(row),
+        projectedCents: entry?.projectedCents ?? null,
+        driftCents: entry?.driftCents ?? null,
+        daysSincePrevious: entry?.daysSincePrevious ?? null,
+      };
+    }),
+  );
 });
 
 apiRouter.post('/accounts/:id/checkpoints', async (req, res) => {

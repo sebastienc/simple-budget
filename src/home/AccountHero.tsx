@@ -4,12 +4,15 @@ import { formatCents } from '@/lib/money';
 import { formatISODate } from '@/lib/dates';
 import type { ProjectionSummary } from '@/lib/projection';
 import type { SinkingFundSummary } from '@/lib/sinkingFund';
+import type { AccuracySummary } from '@/lib/accuracy';
 
 export interface AccountHeroProps {
   accountName: string;
   summary: ProjectionSummary | null;
   /** The ongoing vs. catch-up figures across sinking-fund items, if any. */
   sinkingFund: SinkingFundSummary | null;
+  /** How this account's forecast has performed against recorded reality. */
+  accuracy: AccuracySummary | null;
 }
 
 const DATE_FORMAT = 'd MMMM yyyy';
@@ -18,7 +21,7 @@ const DATE_FORMAT = 'd MMMM yyyy';
  * The answer, in words, before any table. Three states, because the useful
  * thing to say changes completely depending on whether the account runs dry.
  */
-const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinkingFund }) => {
+const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinkingFund, accuracy }) => {
   const { t } = useTranslation();
 
   if (!summary) {
@@ -64,6 +67,16 @@ const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinking
               .join(' ')
           : t('StaysAboveZero', { date: formatISODate(summary.lastDate, DATE_FORMAT) })}
       </p>
+
+      {/* The headline above is a prediction; this is what says whether to believe it. */}
+      {accuracy && (
+        <p className="text-sm text-ink-3">
+          {t(accuracy.runsHigh ? 'ForecastRunsHighPerMonth' : 'ForecastRunsLowPerMonth', {
+            amount: formatCents(Math.abs(accuracy.driftPerMonthCents)),
+            count: accuracy.measuredCount,
+          })}
+        </p>
+      )}
 
       {/*
         Two figures, because the gap between them is the point: what the bills

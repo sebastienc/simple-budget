@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeSinkingFundContribution, mergeCheckpoints, projectBalance, sumProjections, type RecurringItemInput } from './projection';
+import { computeCorrectionAccuracy, computeSinkingFundContribution, mergeCheckpoints, projectBalance, sumProjections, type RecurringItemInput } from './projection';
 
 function item(overrides: Partial<RecurringItemInput> = {}): RecurringItemInput {
   return {
@@ -200,5 +200,109 @@ describe('computeSinkingFundContribution', () => {
   it('reports nothing once the item has no future occurrence', () => {
     const expired = item({ frequency: 'yearly', amountCents: -120000, startDate: '2020-01-01', endDate: '2021-01-01' });
     expect(computeSinkingFundContribution(expired, today)).toEqual({ nextOccurrenceDate: null, suggestedMonthlySetAsideCents: null });
+  });
+});
+
+describe('computeCorrectionAccuracy', () => {
+  // A mortgage on the 15th, and a correction recorded on the 15th. A correction
+  // is the balance at the START of its day, so the forecast it should be
+  // compared against is the close of the 14th — before the mortgage lands.
+  const mortgage = item({ frequency: 'monthly', startDate: '2026-01-15', amountCents: -124000 });
+
+  it('compares against the day before the correction, not the correction day', () => {
+    const [accuracy] = computeCorrectionAccuracy(
+      [
+        { date: '2026-01-01', balanceCents: 100000 },
+        { date: '2026-01-15', balanceCents: 100000 },
+      ],
+      [mortgage],
+    );
+    // Nothing lands between the 1st and the 14th, so the forecast was exactly
+    // right. Comparing against the 15th's close instead would apply the
+    // mortgage and report a drift of -124000 — wrong, but plausible enough to
+    // ship unnoticed.
+    expect(accuracy.projectedCents).toBe(100000);
+    expect(accuracy.driftCents).toBe(0);
+  });
+
+  it('reports a positive drift when the forecast ran high', () => {
+    // Forecast says 100000, reality was 95000: 5000 less than promised.
+    const [accuracy] = computeCorrectionAccuracy(
+      [
+        { date: '2026-01-01', balanceCents: 100000 },
+        { date: '2026-01-10', balanceCents: 95000 },
+      ],
+      [],
+    );
+    expect(accuracy.driftCents).toBe(5000);
+  });
+
+  it('reports a negative drift when the forecast ran low', () => {
+    const [accuracy] = computeCorrectionAccuracy(
+      [
+        { date: '2026-01-01', balanceCents: 100000 },
+        { date: '2026-01-10', balanceCents: 108000 },
+      ],
+      [],
+    );
+    expect(accuracy.driftCents).toBe(-8000);
+  });
+
+  it('accounts for items landing between the two corrections', () => {
+    const groceries = item({ frequency: 'weekly', startDate: '2026-01-05', amountCents: -10000 });
+    const [accuracy] = computeCorrectionAccuracy(
+      [
+        { date: '2026-01-01', balanceCents: 100000 },
+        { date: '2026-01-20', balanceCents: 70000 },
+      ],
+      [groceries],
+    );
+    // Groceries on the 5th, 12th and 19th — all before the 20th.
+    expect(accuracy.projectedCents).toBe(70000);
+    expect(accuracy.driftCents).toBe(0);
+  });
+
+  it('skips the earliest checkpoint rather than reporting it as zero drift', () => {
+    const accuracy = computeCorrectionAccuracy(
+      [
+        { date: '2026-01-01', balanceCents: 100000 },
+        { date: '2026-01-10', balanceCents: 95000 },
+      ],
+      [],
+    );
+    expect(accuracy).toHaveLength(1);
+    expect(accuracy[0].date).toBe('2026-01-10');
+  });
+
+  it('measures each correction from the previous one, not from the origin', () => {
+    const accuracy = computeCorrectionAccuracy(
+      [
+        { date: '2026-01-01', balanceCents: 100000 },
+        { date: '2026-01-10', balanceCents: 90000 },
+        { date: '2026-01-20', balanceCents: 85000 },
+      ],
+      [],
+    );
+    // Second drift is 90000 (carried from the first correction) − 85000, not
+    // 100000 − 85000, which is what measuring from the origin would give.
+    expect(accuracy.map((a) => a.driftCents)).toEqual([10000, 5000]);
+    expect(accuracy.map((a) => a.daysSincePrevious)).toEqual([9, 10]);
+  });
+
+  it('returns nothing when there is only an origin', () => {
+    expect(computeCorrectionAccuracy([{ date: '2026-01-01', balanceCents: 100000 }], [])).toEqual([]);
+    expect(computeCorrectionAccuracy([], [])).toEqual([]);
+  });
+
+  it('handles corrections on consecutive days', () => {
+    const [accuracy] = computeCorrectionAccuracy(
+      [
+        { date: '2026-01-01', balanceCents: 100000 },
+        { date: '2026-01-02', balanceCents: 100000 },
+      ],
+      [],
+    );
+    expect(accuracy.driftCents).toBe(0);
+    expect(accuracy.daysSincePrevious).toBe(1);
   });
 });

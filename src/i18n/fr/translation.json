@@ -61,7 +61,8 @@
   "SinkingFund": "Fonds de prévoyance",
   "NextOccurrence": "Prochaine échéance",
   "SuggestedMonthlySetAside": "Mise de côté mensuelle suggérée",
-  "SinkingFundTotal": "Total du fonds de prévoyance : {{amount}}/mois ({{count}} éléments)",
+  "SinkingFundTotal_one": "Total du fonds de prévoyance : {{amount}}/mois ({{count}} élément)",
+  "SinkingFundTotal_other": "Total du fonds de prévoyance : {{amount}}/mois ({{count}} éléments)",
   "OneTimePayment": "Paiement unique",
   "ShortByOn": "Découvert de <amount>{{amount}}</amount> le {{date}}.",
   "LowestPointOn": "Point le plus bas : {{amount}} le {{date}}.",
@@ -86,5 +87,13 @@
   "LowestPoint": "Point le plus bas",
   "GoesNegativeOn": "Le solde devient négatif le {{date}}",
   "SinkingFundOngoing": "{{amount}} / mois en continu",
-  "SinkingFundCatchUp": "{{amount}} / mois pour rattraper"
+  "SinkingFundCatchUp": "{{amount}} / mois pour rattraper",
+  "ForecastRanHigh": "projection {{amount}} trop haute",
+  "ForecastRanLow": "projection {{amount}} trop basse",
+  "ForecastRunsHighPerMonth_one": "{{amount}} / mois trop optimiste sur {{count}} correction",
+  "ForecastRunsHighPerMonth_other": "{{amount}} / mois trop optimiste sur {{count}} corrections",
+  "ForecastRunsLowPerMonth_one": "{{amount}} / mois trop prudente sur {{count}} correction",
+  "ForecastRunsLowPerMonth_other": "{{amount}} / mois trop prudente sur {{count}} corrections",
+  "AccuracyStartingPoint": "point de départ",
+  "ForecastExact": "projection exacte"
 }
