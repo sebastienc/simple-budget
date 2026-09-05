@@ -1,11 +1,12 @@
 name: CI
 
+# Pull requests only. Anything reaching main has already been checked on the
+# PR that carried it, and main's own workflow is Release. The trade is that a
+# commit pushed straight to main is never checked — so don't.
 on:
   pull_request:
-  push:
-    branches: [main]
 
-# A new push to the same branch makes the in-flight run redundant.
+# A new push to the same PR makes the in-flight run redundant.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
