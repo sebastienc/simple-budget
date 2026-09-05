@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { addDays } from 'date-fns';
+import { addMonths } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import BalanceChart from '@/components/charts/BalanceChart';
 import Panel from '@/components/ui/Panel';
@@ -15,7 +15,7 @@ const NetWorthTable: React.FC = () => {
   const { t } = useTranslation();
   const { accounts } = useAccounts();
   const [from, setFrom] = useState(todayISO);
-  const [to, setTo] = useState(() => toISODate(addDays(new Date(), 90)));
+  const [to, setTo] = useState(() => toISODate(addMonths(new Date(), 3)));
   const { days, includedAccountIds, excludedAccountIds } = useNetWorth(from, to);
 
   const excludedNames = excludedAccountIds.map((id) => accounts.find((account) => account.id === id)?.name).filter((name): name is string => !!name);

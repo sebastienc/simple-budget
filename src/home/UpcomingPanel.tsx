@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Panel from '@/components/ui/Panel';
 import Money from '@/components/ui/Money';
-import { formatISODate } from '@/lib/dates';
+import { formatISODate, todayISO } from '@/lib/dates';
 import type { ProjectionSummary } from '@/lib/projection';
 
 export interface UpcomingPanelProps {
@@ -19,9 +19,14 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
   }
 
   const events = summary.events.slice(0, MAX_EVENTS);
+  // The range can be moved into the past, where "what's coming" would be
+  // describing things that already happened. Keyed off the events rather than
+  // the range's end: the "last 3 months" preset ends *on* today, so comparing
+  // the end date would never register as history.
+  const isHistory = events.length > 0 && events[events.length - 1].date < todayISO();
 
   return (
-    <Panel title={t('WhatsComing')} note={events.length > 0 ? formatISODate(events[events.length - 1].date, 'd MMM') : undefined}>
+    <Panel title={t(isHistory ? 'InThisPeriod' : 'WhatsComing')} note={events.length > 0 ? formatISODate(events[events.length - 1].date, 'd MMM') : undefined}>
       {events.length === 0 && <p className="text-sm text-ink-3">{t('NothingComing')}</p>}
 
       {events.map((event) => (

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { addDays } from 'date-fns';
+import { addMonths } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useToaster } from '@/toast/useToaster';
 import PageLayout from '@/components/layouts/PageLayout';
@@ -33,7 +33,7 @@ const Home: React.FC = () => {
   const [projectionRefreshToken, setProjectionRefreshToken] = useState(0);
   const [isEditingAccount, setIsEditingAccount] = useState(false);
   const [from, setFrom] = useState(todayISO);
-  const [to, setTo] = useState(() => toISODate(addDays(new Date(), 90)));
+  const [to, setTo] = useState(() => toISODate(addMonths(new Date(), 3)));
 
   const currentAccount = accounts.find((account) => account.id === selectedAccountId) ?? accounts[0] ?? null;
   const accountId = currentAccount?.startingBalanceDate ? currentAccount.id : null;

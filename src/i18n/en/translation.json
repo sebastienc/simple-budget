@@ -95,5 +95,8 @@
   "ForecastRunsLowPerMonth_one": "running {{amount}} / month low over {{count}} correction",
   "ForecastRunsLowPerMonth_other": "running {{amount}} / month low over {{count}} corrections",
   "AccuracyStartingPoint": "starting point",
-  "ForecastExact": "forecast was exact"
+  "ForecastExact": "forecast was exact",
+  "LastThreeMonths": "Last 3 months",
+  "NextThreeMonths": "Next 3 months",
+  "InThisPeriod": "In this period"
 }
