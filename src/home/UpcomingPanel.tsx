@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Disclosure, DisclosurePanel, Heading } from 'react-aria-components';
 import { ChevronRightIcon } from '@heroicons/react/24/solid';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import clsx from 'clsx';
 import Panel from '@/components/ui/Panel';
 import Money from '@/components/ui/Money';
@@ -16,13 +17,30 @@ const MAX_EVENTS = 6;
 
 const row = 'flex w-full items-baseline justify-between gap-3 border-b border-rule py-2.5 text-left';
 
+/**
+ * What to call a day.
+ *
+ * Joining every name reads as a single thing — "Groceries · Car fuel ·
+ * Cleaning −360.00" looks like one transaction worth 360 rather than three
+ * separate ones. Leading with the largest item keeps the part of the day worth
+ * recognising (the 15th is *payday*, not "pay and a loan payment") and the
+ * count makes the grouping explicit, and hints there's something to open.
+ */
+function dayLabel(event: ProjectionEvent, t: TFunction): string {
+  if (event.items.length === 1) {
+    return event.items[0].name;
+  }
+  const largest = event.items.reduce((acc, item) => (Math.abs(item.amountCents) > Math.abs(acc.amountCents) ? item : acc), event.items[0]);
+  return t('DayWithOthers', { name: largest.name, count: event.items.length - 1 });
+}
+
 /** Everything landing that day, and the day's net. */
-const DaySummary: React.FC<{ event: ProjectionEvent }> = ({ event }) => (
+const DaySummary: React.FC<{ event: ProjectionEvent; t: TFunction }> = ({ event, t }) => (
   <>
     {/* flex-1 so the chevron, name and amount don't get spread evenly by the
         row's justify-between — the name belongs next to the chevron. */}
     <div className="flex min-w-0 flex-1 flex-col">
-      <span className="truncate text-sm text-ink">{event.items.map((item) => item.name).join(' · ')}</span>
+      <span className="truncate text-sm text-ink">{dayLabel(event, t)}</span>
       <span className="font-mono text-xs text-ink-3">{formatISODate(event.date, 'EEE d MMM')}</span>
     </div>
     <Money cents={event.dailyTotalCents} signed autoTone className="flex-none text-sm" />
@@ -53,7 +71,7 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
         // padding keeps it aligned with the days that do.
         event.items.length === 1 ? (
           <div key={event.date} className={clsx(row, 'pl-6')}>
-            <DaySummary event={event} />
+            <DaySummary event={event} t={t} />
           </div>
         ) : (
           <Disclosure key={event.date}>
@@ -62,7 +80,7 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
                 <Heading className="contents">
                   <Button slot="trigger" className={clsx(row, 'cursor-default items-center rounded-sm outline-hidden focus-visible:ring-2 focus-visible:ring-accent')}>
                     <ChevronRightIcon className={clsx('h-3 w-3 flex-none text-ink-3 transition-transform', isExpanded && 'rotate-90')} />
-                    <DaySummary event={event} />
+                    <DaySummary event={event} t={t} />
                   </Button>
                 </Heading>
 

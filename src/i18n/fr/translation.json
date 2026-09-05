@@ -103,5 +103,7 @@
   "WipeConfirm": "Ceci supprime définitivement tous les comptes, éléments récurrents et corrections de solde.\n\nUne sauvegarde est créée automatiquement avant, donc rien n'est perdu — mais l'application sera vide.\n\nContinuer?",
   "WipeDone": "Toutes les données ont été effacées",
   "WipeBackupSavedTo": "Sauvegarde enregistrée dans {{path}}",
-  "WipeFailed": "Rien n'a été effacé — la sauvegarde n'a pas pu être créée"
+  "WipeFailed": "Rien n'a été effacé — la sauvegarde n'a pas pu être créée",
+  "DayWithOthers_one": "{{name}} et {{count}} autre",
+  "DayWithOthers_other": "{{name}} et {{count}} autres"
 }

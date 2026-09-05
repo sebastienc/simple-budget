@@ -103,5 +103,7 @@
   "WipeConfirm": "This permanently deletes every account, recurring item and balance correction.\n\nA backup is saved automatically first, so nothing is lost — but the app will be empty.\n\nContinue?",
   "WipeDone": "All data erased",
   "WipeBackupSavedTo": "Backup saved to {{path}}",
-  "WipeFailed": "Nothing was erased — the backup could not be saved"
+  "WipeFailed": "Nothing was erased — the backup could not be saved",
+  "DayWithOthers_one": "{{name}} and {{count}} other",
+  "DayWithOthers_other": "{{name}} and {{count}} others"
 }
