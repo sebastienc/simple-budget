@@ -10,6 +10,7 @@ import Badge from '@/components/ui/Badge';
 import { inputStyles } from '@/components/ui/TextField';
 import { formatCents } from '@/lib/money';
 import { formatISODate } from '@/lib/dates';
+import { describeRecurrence } from '@/lib/recurrence';
 import { useRecurringItems, type RecurringItem, type RecurringItemInput } from '@/data/useRecurringItems';
 import RecurringItemForm from './RecurringItemForm';
 
@@ -139,8 +140,7 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
                 {item.sinkingFund && <Badge>{t('SinkingFund')}</Badge>}
               </span>
               <span className="text-xs text-ink-3">
-                {item.endDate && item.endDate === item.startDate ? t('OneTimePayment') : t(`Frequency${capitalize(item.frequency)}`)}
-                {item.frequency === 'semimonthly' && ` (${item.semiMonthlyDay1}, ${item.semiMonthlyDay2})`}
+                {describeRecurrence(item, t)}
                 {item.sinkingFund && item.nextOccurrenceDate && item.suggestedMonthlySetAsideCents !== null && (
                   <>
                     {' · '}
