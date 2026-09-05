@@ -3,6 +3,15 @@ name: Release
 on:
   push:
     branches: [main]
+  # Builds an installer for a tag that already exists. Needed because a release
+  # only produces a DMG as a side effect of being created — if that build fails,
+  # or a tag predates this workflow, there is otherwise no way to attach one.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build an installer for (e.g. v1.0.0)
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -13,6 +22,7 @@ jobs:
   # commit landing on main. Merging that PR is what actually cuts the release:
   # this job then tags it and creates the GitHub release.
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
@@ -31,7 +41,9 @@ jobs:
   # not trigger further workflows, so that one would silently never run.
   dmg:
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    # `always()` so this still runs when release-please was skipped entirely,
+    # which is the case for a manual run.
+    if: always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch')
     # arm64. The DMG is named accordingly, and won't run on an Intel Mac.
     runs-on: macos-latest
     permissions:
@@ -41,7 +53,7 @@ jobs:
         with:
           # The tag, not the branch: main may have moved on since, and the
           # installer has to match the version being released.
-          ref: ${{ needs.release-please.outputs.tag_name }}
+          ref: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
 
       - uses: actions/setup-node@v4
         with:
@@ -50,8 +62,14 @@ jobs:
 
       - run: npm ci
 
+      # Spelled out rather than `npm run dist`, because this job can be pointed
+      # at an *old* tag whose package.json predates the --publish never fix.
+      # Left to itself electron-builder sees CI plus a tag, decides to publish
+      # the release itself, and fails for want of a token — after building the
+      # DMG, so the artifact exists and the step still goes red anyway.
+      # Uploading is this workflow's job, in the step below.
       - name: Build the DMG
-        run: npm run dist
+        run: npm run build && npx electron-builder --publish never
         env:
           # There is no Developer ID certificate here. Without this,
           # electron-builder hunts for one and fails the build rather than
@@ -62,4 +80,4 @@ jobs:
         run: gh release upload "$TAG" release/*.dmg --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.release-please.outputs.tag_name }}
+          TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
