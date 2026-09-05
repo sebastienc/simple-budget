@@ -1,5 +1,10 @@
 appId: com.sebastienc.simplebudget
 productName: Simple Budget
+# productName has a space in it, which would otherwise put one in the installer
+# filename — and GitHub rewrites spaces in a release asset to dots, so the
+# download arrives as "Simple.Budget-1.0.0-arm64.dmg". ${name} is the
+# package.json name, which is already a clean slug.
+artifactName: ${name}-${version}-${arch}.${ext}
 directories:
   output: release
 files:
