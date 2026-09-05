@@ -76,7 +76,6 @@
   "NothingComing": "Nothing scheduled in this range",
   "Detail": "Detail",
   "Settings": "Settings",
-  "DarkMode": "Dark mode",
   "Language": "Language",
   "SearchLanguages": "Search languages",
   "PageNotFound": "That page doesn't exist.",
@@ -105,5 +104,9 @@
   "WipeBackupSavedTo": "Backup saved to {{path}}",
   "WipeFailed": "Nothing was erased — the backup could not be saved",
   "DayWithOthers_one": "{{name}} and {{count}} other",
-  "DayWithOthers_other": "{{name}} and {{count}} others"
+  "DayWithOthers_other": "{{name}} and {{count}} others",
+  "Appearance": "Appearance",
+  "ThemeLight": "Light",
+  "ThemeDark": "Dark",
+  "ThemeSystem": "System"
 }

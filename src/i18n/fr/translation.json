@@ -76,7 +76,6 @@
   "NothingComing": "Rien de prévu dans cette période",
   "Detail": "Détail",
   "Settings": "Réglages",
-  "DarkMode": "Mode sombre",
   "Language": "Langue",
   "SearchLanguages": "Rechercher une langue",
   "PageNotFound": "Cette page n'existe pas.",
@@ -105,5 +104,9 @@
   "WipeBackupSavedTo": "Sauvegarde enregistrée dans {{path}}",
   "WipeFailed": "Rien n'a été effacé — la sauvegarde n'a pas pu être créée",
   "DayWithOthers_one": "{{name}} et {{count}} autre",
-  "DayWithOthers_other": "{{name}} et {{count}} autres"
+  "DayWithOthers_other": "{{name}} et {{count}} autres",
+  "Appearance": "Apparence",
+  "ThemeLight": "Clair",
+  "ThemeDark": "Sombre",
+  "ThemeSystem": "Système"
 }

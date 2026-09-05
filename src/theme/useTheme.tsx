@@ -1,11 +1,16 @@
 import React from 'react';
 
-export type Theme = 'light' | 'dark';
+/** What the user chose. `system` means "follow the OS, and keep following it". */
+export type ThemePreference = 'light' | 'dark' | 'system';
+/** What that choice resolves to right now. */
+export type ResolvedTheme = 'light' | 'dark';
+
+export const THEME_PREFERENCES: ThemePreference[] = ['light', 'dark', 'system'];
 
 export interface ThemeContextProps {
-  theme: Theme;
-  isLoading: boolean;
-  updateTheme: (value: Theme) => void;
+  preference: ThemePreference;
+  theme: ResolvedTheme;
+  setPreference: (value: ThemePreference) => void;
 }
 
 export const ThemeContext = React.createContext<ThemeContextProps>(undefined!);
@@ -13,15 +18,25 @@ export const useTheme = () => React.useContext(ThemeContext);
 
 export const THEME_STORAGE_KEY = 'selectedTheme';
 
+const DARK_QUERY = '(prefers-color-scheme: dark)';
+
 /**
- * The theme to start in: an explicit stored choice wins, otherwise follow the
- * OS. Kept in one place because `index.html` runs the same logic inline before
- * first paint to avoid a flash of the wrong theme.
+ * Defaults to following the OS. Anything unrecognised — including the absence
+ * of a stored value on a fresh install — means "system" rather than a guess at
+ * light or dark.
  */
-export function resolveInitialTheme(): Theme {
+export function resolveInitialPreference(): ThemePreference {
   const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') {
-    return stored;
+  return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+}
+
+export function resolveTheme(preference: ThemePreference): ResolvedTheme {
+  if (preference !== 'system') {
+    return preference;
   }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return window.matchMedia(DARK_QUERY).matches ? 'dark' : 'light';
+}
+
+export function prefersDarkQuery(): MediaQueryList {
+  return window.matchMedia(DARK_QUERY);
 }

@@ -3,7 +3,7 @@ import { Button, Menu, MenuTrigger, Popover, Separator, type Key } from 'react-a
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import AccountMenuItem from './AccountMenuItem';
-import DarkModeSwitch from './Theme/DarkModeSwitch';
+import AppearanceControl from './Theme/AppearanceControl';
 import LanguageSelector from './LanguageSelection/LanguageSelector';
 import { useBackup } from '@/data/useBackup';
 import { useToaster } from '@/toast/useToaster';
@@ -68,9 +68,7 @@ const AccountMenu = () => {
           <Cog6ToothIcon className="h-5 w-5" />
         </Button>
         <Popover className="origin-top-right overflow-auto rounded-lg border border-rule bg-surface-raised p-2 shadow-lg outline-hidden fill-mode-forwards entering:animate-in entering:fade-in entering:placement-top:slide-in-from-bottom-1 entering:placement-bottom:slide-in-from-top-1 exiting:animate-out exiting:fade-out exiting:placement-top:slide-out-to-bottom-1 exiting:placement-bottom:slide-out-to-top-1">
-          <div className="mx-3 mt-2 flex flex-col gap-1">
-            <DarkModeSwitch>{t('DarkMode')}</DarkModeSwitch>
-          </div>
+          <AppearanceControl />
           <Separator className="mx-3 mt-4 mb-2 h-px border-none bg-rule" />
           <LanguageSelector />
           <Separator className="mx-3 mt-4 mb-2 h-px border-none bg-rule" />
