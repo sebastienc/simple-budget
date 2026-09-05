@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/sebastienc/simple-budget/compare/v1.0.0...v1.0.1) (2026-09-05)
+
+
+### Fixes
+
+* stop electron-builder publishing the release itself ([9ff2ffc](https://github.com/sebastienc/simple-budget/commit/9ff2ffc9e8584d0b4cfa0e467936360c3a973af5))
+
 ## 1.0.0 (2026-09-05)
 
 
