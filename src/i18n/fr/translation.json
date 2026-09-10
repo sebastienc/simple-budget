@@ -6,6 +6,7 @@
   "AccountName": "Nom du compte",
   "Currency": "Devise",
   "CreateAccount": "Créer un compte",
+  "AddAccount": "Ajouter un compte",
   "RecurringItems": "Éléments récurrents",
   "AddRecurringItem": "Ajouter un élément récurrent",
   "RecurringItemAdded": "Élément récurrent ajouté",

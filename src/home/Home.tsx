@@ -34,6 +34,7 @@ const Home: React.FC = () => {
   const [isViewingNetWorth, setIsViewingNetWorth] = useState(false);
   const [projectionRefreshToken, setProjectionRefreshToken] = useState(0);
   const [isEditingAccount, setIsEditingAccount] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [from, setFrom] = useState(todayISO);
   const [to, setTo] = useState(() => toISODate(addMonths(new Date(), 3)));
 
@@ -76,8 +77,16 @@ const Home: React.FC = () => {
       onSelectAccount={(id) => {
         setSelectedAccountId(id);
         setIsViewingNetWorth(false);
+        setIsCreatingAccount(false);
       }}
-      onSelectNetWorth={() => setIsViewingNetWorth(true)}
+      onSelectNetWorth={() => {
+        setIsViewingNetWorth(true);
+        setIsCreatingAccount(false);
+      }}
+      onAddAccount={() => {
+        setIsViewingNetWorth(false);
+        setIsCreatingAccount(true);
+      }}
     />
   );
 
@@ -89,12 +98,16 @@ const Home: React.FC = () => {
     return <PageLayout toolbar={toolbar}>{<NetWorthTable />}</PageLayout>;
   }
 
-  if (!currentAccount || !currentAccount.startingBalanceDate) {
+  if (isCreatingAccount || !currentAccount || !currentAccount.startingBalanceDate) {
     return (
       <PageLayout toolbar={toolbar}>
         <AccountSetup
-          account={currentAccount}
-          onCreateAccount={createAccount}
+          account={isCreatingAccount ? null : currentAccount}
+          onCreateAccount={async (name, currency) => {
+            const created = await createAccount(name, currency);
+            setSelectedAccountId(created.id);
+            setIsCreatingAccount(false);
+          }}
           onSetStartingBalance={(id, cents, date) => updateAccount(id, { startingBalanceCents: cents, startingBalanceDate: date })}
         />
       </PageLayout>

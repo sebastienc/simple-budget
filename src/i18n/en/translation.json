@@ -6,6 +6,7 @@
   "AccountName": "Account name",
   "Currency": "Currency",
   "CreateAccount": "Create account",
+  "AddAccount": "Add account",
   "RecurringItems": "Recurring items",
   "AddRecurringItem": "Add recurring item",
   "RecurringItemAdded": "Recurring item added",
