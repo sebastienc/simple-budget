@@ -29,7 +29,7 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 
 Comparing against PocketSmith and similar cash-flow-forecasting apps (see conversation for the fuller list) turned up a few gaps worth closing; most of what they offer beyond this (bank sync as the default, mobile, sharing) cuts against this app's local-only, single-device design and isn't worth chasing.
 
-- [ ] What-if scenario modeling — model a hypothetical change (an extra expense, an income drop) against the projection without committing it to real data. Needs a UI for "scratch" recurring items/adjustments that apply only within a preview, not persisted like the real ones.
+- [x] What-if scenario modeling — a "What if" panel adds hypothetical recurring items (reusing the real recurring-item form) that are never persisted; the projection they'd produce is overlaid as a dashed line on the real one, so the gap is visible directly rather than switching between two views. Single-account only — not on the combined "All accounts" view.
 - [x] Per-account currency — each account has a currency (CAD/USD/EUR/GBP), set at creation and editable afterward (safe, since cents never encoded currency — it's purely a display label). The "All accounts" net-worth view groups by currency rather than converting: one hero/chart/list per currency, never summed together, so no exchange rate is needed.
 - [ ] Data entry automation for recurring items — worth exploring, but deliberately avoiding connecting to the user's bank/credit card portal (screen-scraping or Plaid-style aggregators) if at all possible, since that's a large trust and security surface for a local-only app. Needs more thought before scoping; no clear approach yet.
 

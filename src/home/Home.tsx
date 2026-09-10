@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { addMonths } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useToaster } from '@/toast/useToaster';
@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import BalanceChart from '@/components/charts/BalanceChart';
 import { useAccounts } from '@/data/useAccounts';
 import { useProjection } from '@/data/useProjection';
+import { useProjectionPreview, type ScratchItem } from '@/data/useProjectionPreview';
 import { useRecurringItems } from '@/data/useRecurringItems';
 import { summarizeProjection } from '@/lib/projection';
 import { summarizeSinkingFunds } from '@/lib/sinkingFund';
@@ -23,6 +24,7 @@ import BalanceCheckpointsPanel from './BalanceCheckpointsPanel';
 import ProjectionTable from './ProjectionTable';
 import UpcomingPanel from './UpcomingPanel';
 import NetWorthTable from './NetWorthTable';
+import WhatIfPanel from './WhatIfPanel';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -43,8 +45,18 @@ const Home: React.FC = () => {
   const { days, error } = useProjection(accountId, from, to, projectionRefreshToken);
   const { items } = useRecurringItems(accountId, projectionRefreshToken);
 
+  // Hypothetical items, never persisted — see WhatIfPanel/useProjectionPreview.
+  // Scoped to one account at a time: switching accounts starts a fresh scenario.
+  const [scratchItems, setScratchItems] = useState<ScratchItem[]>([]);
+  useEffect(() => setScratchItems([]), [accountId]);
+  const { days: previewDays } = useProjectionPreview(accountId, from, to, scratchItems);
+
   const summary = useMemo(() => summarizeProjection(days), [days]);
   const chartPoints = useMemo(() => days.map((day) => ({ date: day.date, valueCents: day.balanceCents })), [days]);
+  const comparisonPoints = useMemo(
+    () => (scratchItems.length > 0 ? previewDays.map((day) => ({ date: day.date, valueCents: day.balanceCents })) : undefined),
+    [scratchItems, previewDays],
+  );
 
   const sinkingFund = useMemo(() => summarizeSinkingFunds(items, todayISO()), [items]);
 
@@ -123,8 +135,16 @@ const Home: React.FC = () => {
 
       <div className="flex flex-col gap-3">
         <RangeControl from={from} to={to} onFromChange={setFrom} onToChange={setTo} />
-        <BalanceChart points={chartPoints} currency={currentAccount.currency} markers={chartMarkers} ariaLabel={t('Projection')} />
+        <BalanceChart points={chartPoints} currency={currentAccount.currency} comparisonPoints={comparisonPoints} markers={chartMarkers} ariaLabel={t('Projection')} />
+        {comparisonPoints && <p className="text-xs text-ink-3">{t('WhatIfLegend')}</p>}
       </div>
+
+      <WhatIfPanel
+        currency={currentAccount.currency}
+        scratchItems={scratchItems}
+        onAdd={(item) => setScratchItems((current) => [...current, item])}
+        onRemove={(id) => setScratchItems((current) => current.filter((item) => item.id !== id))}
+      />
 
       <div className="grid gap-10 md:grid-cols-[1.15fr_1fr]">
         <RecurringItemsPanel accountId={currentAccount.id} currency={currentAccount.currency} onItemsChanged={bumpProjection} />
