@@ -15,11 +15,14 @@ Not a category-envelope budget or a bank-synced transaction ledger — it's a da
 
 ## Installing
 
-Grab the `.dmg` from [Releases](https://github.com/sebastienc/simple-budget/releases), or build one yourself:
+Grab the installer for your OS from [Releases](https://github.com/sebastienc/simple-budget/releases),
+or build one yourself.
+
+### macOS
 
 ```sh
 npm install
-npm run dist       # → release/Simple Budget-<version>-arm64.dmg
+npm run dist       # → release/simple-budget-<version>-arm64.dmg
 ```
 
 Open the DMG and drag **Simple Budget** to Applications. Apple Silicon only — the DMG is arm64.
@@ -33,15 +36,52 @@ is Gatekeeper's misleading way of saying "unsigned". Clear the quarantine flag o
 xattr -dr com.apple.quarantine "/Applications/Simple Budget.app"
 ```
 
-Your data lives at `~/Library/Application Support/Simple Budget/simple-budget.db` and is never sent
-anywhere. It survives reinstalling the app; to move it to another Mac, use the automatic backups
-above, or Export/Import from the Settings menu.
+Your data lives at `~/Library/Application Support/simple-budget/simple-budget.db`.
+
+### Windows
+
+```sh
+npm install
+npm run dist -- --win   # → release/simple-budget-<version>-x64.exe
+```
+
+Run the installer. It's **not code-signed** either (same reason — a paid certificate), so Windows
+SmartScreen will show "Windows protected your PC" on first run of a downloaded copy. Click **More
+info → Run anyway** to proceed.
+
+Your data lives at `%APPDATA%\simple-budget\simple-budget.db`.
+
+### Linux
+
+```sh
+npm install
+npm run dist -- --linux   # → release/simple-budget-<version>-x86_64.AppImage
+```
+
+An [AppImage](https://appimage.org/) — no install step, no distro-specific package. Make it
+executable and run it:
+
+```sh
+chmod +x simple-budget-<version>-x86_64.AppImage
+./simple-budget-<version>-x86_64.AppImage
+```
+
+Some distros (notably ones shipping GLib ≥ 2.80, e.g. recent Ubuntu/Fedora) need `libfuse2`
+installed for AppImages to run at all; if double-clicking or running it does nothing, install that
+first.
+
+Your data lives at `~/.config/simple-budget/simple-budget.db`.
+
+---
+
+Either way, your data is never sent anywhere, and it survives reinstalling the app. To move it to
+another machine, use the automatic backups above, or Export/Import from the Settings menu.
 
 ## Tech stack
 
 - **Renderer:** React 19 + TypeScript + Vite, TailwindCSS v4, React Aria Components, i18next.
 - **Main process:** Electron + Express, serving both the UI and a JSON API from a local HTTP server on `127.0.0.1:5680`.
-- **Data:** SQLite via `better-sqlite3` + Kysely, stored at `~/Library/Application Support/simple-budget/simple-budget.db` (macOS path; varies by OS).
+- **Data:** SQLite via `better-sqlite3` + Kysely, stored in the OS's per-app data directory — `~/Library/Application Support/simple-budget/simple-budget.db` on macOS, `%APPDATA%\simple-budget\simple-budget.db` on Windows, `~/.config/simple-budget/simple-budget.db` on Linux.
 
 ### Why a local HTTP server instead of Electron IPC?
 
@@ -57,7 +97,7 @@ npm run dev        # start the app (Electron window + Vite dev server with HMR)
 npm run lint       # ESLint
 npm test           # unit tests (vitest)
 npm run build      # typecheck + production build
-npm run dist       # package a distributable (electron-builder, macOS .dmg)
+npm run dist       # package a distributable for the current OS (add -- --mac / --win / --linux, any combination, to target specific ones)
 ```
 
 ### Demo data
@@ -82,7 +122,8 @@ Commit messages follow [Conventional Commits](https://www.conventionalcommits.or
 `build:` and so on. [release-please](https://github.com/googleapis/release-please) reads them and keeps
 a "chore(main): release x.y.z" pull request open against `main`, with the version bump and the
 generated changelog. **Merging that PR is what cuts a release:** it tags the commit, creates the GitHub
-release, and then a macOS runner builds the DMG and attaches it.
+release, and then a macOS runner builds the DMG, the Windows installer, and the Linux AppImage, and
+attaches all three.
 
 So the version in `package.json` is not edited by hand — the type of the commits since the last
 release decides it (`fix:` → patch, `feat:` → minor, a `!` or `BREAKING CHANGE:` footer → major). To

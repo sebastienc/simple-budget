@@ -34,17 +34,23 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Attaches the installer to whatever release the job above just created.
+  # Attaches the installers to whatever release the job above just created.
   #
   # Deliberately a dependent job rather than a separate workflow triggered by
   # `release: published` — a release created with the default GITHUB_TOKEN does
   # not trigger further workflows, so that one would silently never run.
-  dmg:
+  #
+  # The DMG (arm64 — won't run on an Intel Mac), the Windows installer (x64),
+  # and the Linux AppImage (x64) are all built here on one macOS runner rather
+  # than adding separate windows-latest/ubuntu-latest jobs: better-sqlite3
+  # ships a genuine prebuilt native binary for every platform (see electron-
+  # builder.yml's npmRebuild note), so there is nothing that actually needs a
+  # matching host OS, or Wine, to compile.
+  installers:
     needs: release-please
     # `always()` so this still runs when release-please was skipped entirely,
     # which is the case for a manual run.
     if: always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch')
-    # arm64. The DMG is named accordingly, and won't run on an Intel Mac.
     runs-on: macos-latest
     permissions:
       contents: write
@@ -52,7 +58,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # The tag, not the branch: main may have moved on since, and the
-          # installer has to match the version being released.
+          # installers have to match the version being released.
           ref: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
 
       - uses: actions/setup-node@v4
@@ -66,18 +72,18 @@ jobs:
       # at an *old* tag whose package.json predates the --publish never fix.
       # Left to itself electron-builder sees CI plus a tag, decides to publish
       # the release itself, and fails for want of a token — after building the
-      # DMG, so the artifact exists and the step still goes red anyway.
+      # installers, so the artifacts exist and the step still goes red anyway.
       # Uploading is this workflow's job, in the step below.
-      - name: Build the DMG
-        run: npm run build && npx electron-builder --publish never
+      - name: Build the installers
+        run: npm run build && npx electron-builder --mac --win --linux --publish never
         env:
           # There is no Developer ID certificate here. Without this,
           # electron-builder hunts for one and fails the build rather than
           # producing the unsigned app we actually want.
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Attach it to the release
-        run: gh release upload "$TAG" release/*.dmg --clobber
+      - name: Attach them to the release
+        run: gh release upload "$TAG" release/*.dmg release/*.exe release/*.AppImage --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
