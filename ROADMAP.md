@@ -25,6 +25,14 @@ Tracks missing features and known gaps. Solo project on `main` for now — check
 
 - [x] Property-tax sinking-fund tracker — recurring items can be flagged "sinking fund". The app amortizes each one over its own recurrence period (a yearly bill ÷ 12, quarterly ÷ 3) to give a stable monthly cost, and the hero shows that alongside a catch-up figure — what it would take starting today, given nothing has been set aside yet. The gap between the two is the "you're behind" signal. Purely informational: the projection still debits the full lump sum on its actual due date.
 
+## From competitor research
+
+Comparing against PocketSmith and similar cash-flow-forecasting apps (see conversation for the fuller list) turned up a few gaps worth closing; most of what they offer beyond this (bank sync as the default, mobile, sharing) cuts against this app's local-only, single-device design and isn't worth chasing.
+
+- [ ] What-if scenario modeling — model a hypothetical change (an extra expense, an income drop) against the projection without committing it to real data. Needs a UI for "scratch" recurring items/adjustments that apply only within a preview, not persisted like the real ones.
+- [ ] Per-account currency — accounts are all treated as one implicit currency today, which breaks down with a mix of CAD and USD accounts. Needs a currency field per account, decisions on how (or whether) the "All accounts" net-worth view combines accounts in different currencies (an exchange rate is either fixed/manual or fetched, both add complexity), and how `Money`/`formatCents*` (currently locale-aware but not currency-aware) picks a currency per amount.
+- [ ] Data entry automation for recurring items — worth exploring, but deliberately avoiding connecting to the user's bank/credit card portal (screen-scraping or Plaid-style aggregators) if at all possible, since that's a large trust and security surface for a local-only app. Needs more thought before scoping; no clear approach yet.
+
 ## Dropped
 
 - Subscription/recurring-charge verification checklist — in the original spreadsheet this was a list of which websites had a credit card on file, to make card-expiry renewals easier. Not a cash-flow concern, and out of scope for this app now that credit card balances are just paid off a few times a month via recurring items.
