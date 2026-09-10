@@ -4,6 +4,7 @@
   "StartingBalanceDate": "En date du",
   "SetStartingBalance": "Définir le solde de départ",
   "AccountName": "Nom du compte",
+  "Currency": "Devise",
   "CreateAccount": "Créer un compte",
   "RecurringItems": "Éléments récurrents",
   "AddRecurringItem": "Ajouter un élément récurrent",

@@ -16,6 +16,7 @@ import RecurringItemForm from './RecurringItemForm';
 
 export interface RecurringItemsPanelProps {
   accountId: number;
+  currency: string;
   onItemsChanged?: () => void;
 }
 
@@ -39,7 +40,7 @@ function capitalize(value: string): string {
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
-const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, onItemsChanged }) => {
+const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, currency, onItemsChanged }) => {
   const { t } = useTranslation();
   const { addToast } = useToaster();
   const { items, createItem, updateItem, deleteItem } = useRecurringItems(accountId);
@@ -97,7 +98,7 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
       {mode === 'idle' && items.length === 0 && <p className="text-sm text-ink-3">{t('NoRecurringItems')}</p>}
 
       {mode === 'idle' && sinkingFundItems.length > 0 && (
-        <p className="text-sm text-ink-2">{t('SinkingFundTotal', { amount: formatCents(sinkingFundTotalCents), count: sinkingFundItems.length })}</p>
+        <p className="text-sm text-ink-2">{t('SinkingFundTotal', { amount: formatCents(sinkingFundTotalCents, currency), count: sinkingFundItems.length })}</p>
       )}
 
       {mode === 'idle' && items.length > 0 && (
@@ -146,13 +147,13 @@ const RecurringItemsPanel: React.FC<RecurringItemsPanelProps> = ({ accountId, on
                     {' · '}
                     {t('NextOccurrence')} {formatISODate(item.nextOccurrenceDate, 'd MMM yyyy')}
                     {' · '}
-                    {t('SuggestedMonthlySetAside')} {formatCents(Math.abs(item.suggestedMonthlySetAsideCents))}
+                    {t('SuggestedMonthlySetAside')} {formatCents(Math.abs(item.suggestedMonthlySetAsideCents), currency)}
                   </>
                 )}
               </span>
             </div>
             <div className="flex flex-none items-baseline gap-1">
-              <Money cents={item.amountCents} signed autoTone className="mr-2 text-sm" />
+              <Money cents={item.amountCents} currency={currency} signed autoTone className="mr-2 text-sm" />
               <Button variant="link" size="sm" onPress={() => setMode(item.id)}>
                 {t('Edit')}
               </Button>

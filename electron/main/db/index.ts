@@ -10,6 +10,7 @@ import * as migration002RecurringItems from './migrations/002_recurring_items';
 import * as migration003SemimonthlyRecurringItems from './migrations/003_semimonthly_recurring_items';
 import * as migration004BalanceCheckpoints from './migrations/004_balance_checkpoints';
 import * as migration005RecurringItemSinkingFund from './migrations/005_recurring_item_sinking_fund';
+import * as migration006AccountCurrency from './migrations/006_account_currency';
 
 const migrations: Record<string, Migration> = {
   '001_init': migration001Init,
@@ -17,6 +18,7 @@ const migrations: Record<string, Migration> = {
   '003_semimonthly_recurring_items': migration003SemimonthlyRecurringItems,
   '004_balance_checkpoints': migration004BalanceCheckpoints,
   '005_recurring_item_sinking_fund': migration005RecurringItemSinkingFund,
+  '006_account_currency': migration006AccountCurrency,
 };
 
 class InlineMigrationProvider implements MigrationProvider {

@@ -13,10 +13,11 @@ import { useBalanceCheckpoints, type BalanceCheckpoint } from '@/data/useBalance
 
 export interface BalanceCheckpointsPanelProps {
   accountId: number;
+  currency: string;
   onCheckpointsChanged?: () => void;
 }
 
-const BalanceCheckpointsPanel: React.FC<BalanceCheckpointsPanelProps> = ({ accountId, onCheckpointsChanged }) => {
+const BalanceCheckpointsPanel: React.FC<BalanceCheckpointsPanelProps> = ({ accountId, currency, onCheckpointsChanged }) => {
   const { t } = useTranslation();
   const { addToast } = useToaster();
   const { checkpoints, createOrUpdateCheckpoint, deleteCheckpoint } = useBalanceCheckpoints(accountId);
@@ -51,7 +52,7 @@ const BalanceCheckpointsPanel: React.FC<BalanceCheckpointsPanelProps> = ({ accou
       note={
         accuracy
           ? t(accuracy.runsHigh ? 'ForecastRunsHighPerMonth' : 'ForecastRunsLowPerMonth', {
-              amount: formatCents(Math.abs(accuracy.driftPerMonthCents)),
+              amount: formatCents(Math.abs(accuracy.driftPerMonthCents), currency),
               count: accuracy.measuredCount,
             })
           : undefined
@@ -90,11 +91,11 @@ const BalanceCheckpointsPanel: React.FC<BalanceCheckpointsPanelProps> = ({ accou
                 ? t('AccuracyStartingPoint')
                 : checkpoint.driftCents === 0
                   ? t('ForecastExact')
-                  : t(checkpoint.driftCents > 0 ? 'ForecastRanHigh' : 'ForecastRanLow', { amount: formatCents(Math.abs(checkpoint.driftCents)) })}
+                  : t(checkpoint.driftCents > 0 ? 'ForecastRanHigh' : 'ForecastRanLow', { amount: formatCents(Math.abs(checkpoint.driftCents), currency) })}
             </span>
           </div>
           <div className="flex flex-none items-baseline gap-3">
-            <Money cents={checkpoint.balanceCents} autoTone className="text-sm" />
+            <Money cents={checkpoint.balanceCents} currency={currency} autoTone className="text-sm" />
             <Button variant="link" size="sm" onPress={() => handleDelete(checkpoint)}>
               {t('Delete')}
             </Button>

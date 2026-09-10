@@ -3,6 +3,7 @@ import type { ColumnType, Generated } from 'kysely';
 export interface AccountsTable {
   id: Generated<number>;
   name: string;
+  currency: ColumnType<string, string | undefined, string>;
   starting_balance_cents: ColumnType<number, number | undefined, number>;
   starting_balance_date: string | null;
   created_at: ColumnType<string, string | undefined, never>;

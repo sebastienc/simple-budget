@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 export interface Account {
   id: number;
   name: string;
+  currency: string;
   startingBalanceCents: number;
   startingBalanceDate: string | null;
   createdAt: string;
@@ -10,6 +11,7 @@ export interface Account {
 
 export interface AccountPatch {
   name?: string;
+  currency?: string;
   startingBalanceCents?: number;
   startingBalanceDate?: string;
 }
@@ -30,11 +32,11 @@ export function useAccounts() {
   }, [refresh]);
 
   const createAccount = useCallback(
-    async (name: string) => {
+    async (name: string, currency: string) => {
       await fetch('/api/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, currency }),
       });
       await refresh();
     },

@@ -8,6 +8,7 @@ import type { AccuracySummary } from '@/lib/accuracy';
 
 export interface AccountHeroProps {
   accountName: string;
+  currency: string;
   summary: ProjectionSummary | null;
   /** The ongoing vs. catch-up figures across sinking-fund items, if any. */
   sinkingFund: SinkingFundSummary | null;
@@ -21,7 +22,7 @@ const DATE_FORMAT = 'd MMMM yyyy';
  * The answer, in words, before any table. Three states, because the useful
  * thing to say changes completely depending on whether the account runs dry.
  */
-const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinkingFund, accuracy }) => {
+const AccountHero: React.FC<AccountHeroProps> = ({ accountName, currency, summary, sinkingFund, accuracy }) => {
   const { t } = useTranslation();
 
   if (!summary) {
@@ -52,11 +53,11 @@ const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinking
           // the translation.
           <Trans
             i18nKey="ShortByOn"
-            values={{ amount: formatCents(Math.abs(summary.lowest.cents)), date: lowestDate }}
+            values={{ amount: formatCents(Math.abs(summary.lowest.cents), currency), date: lowestDate }}
             components={{ amount: <span className="text-warn" /> }}
           />
         ) : (
-          t('LowestPointOn', { amount: formatCents(summary.lowest.cents), date: lowestDate })
+          t('LowestPointOn', { amount: formatCents(summary.lowest.cents, currency), date: lowestDate })
         )}
       </h1>
 
@@ -72,7 +73,7 @@ const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinking
       {accuracy && (
         <p className="text-sm text-ink-3">
           {t(accuracy.runsHigh ? 'ForecastRunsHighPerMonth' : 'ForecastRunsLowPerMonth', {
-            amount: formatCents(Math.abs(accuracy.driftPerMonthCents)),
+            amount: formatCents(Math.abs(accuracy.driftPerMonthCents), currency),
             count: accuracy.measuredCount,
           })}
         </p>
@@ -88,12 +89,12 @@ const AccountHero: React.FC<AccountHeroProps> = ({ accountName, summary, sinking
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 text-sm font-semibold text-accent">
             <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            {t('SinkingFundOngoing', { amount: formatCents(sinkingFund.ongoingCents) })}
+            {t('SinkingFundOngoing', { amount: formatCents(sinkingFund.ongoingCents, currency) })}
           </span>
           {sinkingFund.isBehind && (
             <span className="inline-flex items-center gap-2 rounded-full bg-warn-soft px-3 py-1.5 text-sm font-semibold text-warn">
               <span className="h-1.5 w-1.5 rounded-full bg-current" />
-              {t('SinkingFundCatchUp', { amount: formatCents(sinkingFund.catchUpCents) })}
+              {t('SinkingFundCatchUp', { amount: formatCents(sinkingFund.catchUpCents, currency) })}
             </span>
           )}
         </div>

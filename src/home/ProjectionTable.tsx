@@ -9,6 +9,7 @@ import type { ProjectionSummary } from '@/lib/projection';
 
 export interface ProjectionTableProps {
   days: ProjectionDay[];
+  currency: string;
   summary: ProjectionSummary | null;
 }
 
@@ -53,7 +54,7 @@ function toLedgerRows(days: ProjectionDay[]): LedgerRow[] {
   return rows;
 }
 
-const ProjectionTable: React.FC<ProjectionTableProps> = ({ days, summary }) => {
+const ProjectionTable: React.FC<ProjectionTableProps> = ({ days, currency, summary }) => {
   const { t } = useTranslation();
   const rows = useMemo(() => toLedgerRows(days), [days]);
 
@@ -82,7 +83,7 @@ const ProjectionTable: React.FC<ProjectionTableProps> = ({ days, summary }) => {
                     </td>
                     <td className="py-1.5 pr-4">—</td>
                     <td className="py-1.5 text-right">
-                      <Money cents={row.balanceCents} tone={row.balanceCents < 0 ? 'warn' : 'quiet'} />
+                      <Money cents={row.balanceCents} currency={currency} tone={row.balanceCents < 0 ? 'warn' : 'quiet'} />
                     </td>
                   </tr>
                 );
@@ -100,13 +101,13 @@ const ProjectionTable: React.FC<ProjectionTableProps> = ({ days, summary }) => {
                       {day.correctionApplied && <span className="text-xs font-semibold text-accent">{t('BalanceCorrectionApplied')}</span>}
                       {day.items.map((item) => (
                         <span key={item.id} className="whitespace-nowrap">
-                          {item.name} <Money cents={item.amountCents} signed tone="quiet" className="text-xs" />
+                          {item.name} <Money cents={item.amountCents} currency={currency} signed tone="quiet" className="text-xs" />
                         </span>
                       ))}
                     </span>
                   </td>
                   <td className="py-1.5 text-right">
-                    <Money cents={day.balanceCents} autoTone />
+                    <Money cents={day.balanceCents} currency={currency} autoTone />
                   </td>
                 </tr>
               );
@@ -117,7 +118,7 @@ const ProjectionTable: React.FC<ProjectionTableProps> = ({ days, summary }) => {
               <td className="border-t-[3px] border-double border-rule-strong py-2 pr-4 text-xs tracking-wide text-ink-2">{t('LowestPoint')}</td>
               <td className="border-t-[3px] border-double border-rule-strong py-2 pr-4 text-xs text-ink-2">{formatISODate(summary.lowest.date, 'd MMMM yyyy')}</td>
               <td className="border-t-[3px] border-double border-rule-strong py-2 text-right">
-                <Money cents={summary.lowest.cents} autoTone className="font-semibold" />
+                <Money cents={summary.lowest.cents} currency={currency} autoTone className="font-semibold" />
               </td>
             </tr>
           </tbody>

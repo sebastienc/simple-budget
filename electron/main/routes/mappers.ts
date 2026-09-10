@@ -6,6 +6,7 @@ export function toAccountJson(row: Selectable<AccountsTable>) {
   return {
     id: row.id,
     name: row.name,
+    currency: row.currency,
     startingBalanceCents: row.starting_balance_cents,
     startingBalanceDate: row.starting_balance_date,
     createdAt: row.created_at,
