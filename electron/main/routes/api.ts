@@ -14,6 +14,7 @@ import {
   computeSinkingFundContribution,
   computeCorrectionAccuracy,
   type Frequency,
+  type RecurringItemInput,
 } from '../projection';
 import { backupBeforeDestructiveChange, backupDbTo, replaceDbWith } from '../db';
 import { readBackupSettings, writeBackupSettings } from '../backup/settings';
@@ -40,6 +41,67 @@ function isValidDayOfMonth(value: unknown): value is number {
 function parseId(raw: string): number | null {
   const id = Number(raw);
   return Number.isInteger(id) ? id : null;
+}
+
+interface ValidatedRecurringItemFields {
+  name: string;
+  amountCents: number;
+  frequency: Frequency;
+  interval: number;
+  startDate: string;
+  endDate: string | null;
+  semiMonthlyDay1: number | null;
+  semiMonthlyDay2: number | null;
+  sinkingFund?: boolean;
+}
+
+/**
+ * The checks a recurring item's fields must pass, shared by the real
+ * create endpoint and the what-if preview endpoint — a scratch item is
+ * validated exactly like a real one, it's just never written to the DB.
+ */
+function validateRecurringItemFields(body: unknown): { error: string } | { value: ValidatedRecurringItemFields } {
+  const { name, amountCents, frequency, interval, startDate, endDate, semiMonthlyDay1, semiMonthlyDay2, sinkingFund } =
+    (body as Record<string, unknown>) ?? {};
+
+  if (typeof name !== 'string' || !name.trim()) {
+    return { error: 'name is required' };
+  }
+  if (typeof amountCents !== 'number') {
+    return { error: 'amountCents must be a number' };
+  }
+  if (!FREQUENCIES.includes(frequency as Frequency)) {
+    return { error: `frequency must be one of ${FREQUENCIES.join(', ')}` };
+  }
+  if (!Number.isInteger(interval) || (interval as number) < 1) {
+    return { error: 'interval must be a positive integer' };
+  }
+  if (!isValidDateString(startDate)) {
+    return { error: 'startDate must be YYYY-MM-DD' };
+  }
+  if (endDate !== undefined && endDate !== null && !isValidDateString(endDate)) {
+    return { error: 'endDate must be YYYY-MM-DD' };
+  }
+  if (frequency === 'semimonthly' && (!isValidDayOfMonth(semiMonthlyDay1) || !isValidDayOfMonth(semiMonthlyDay2))) {
+    return { error: 'semiMonthlyDay1 and semiMonthlyDay2 are required (1-31) for semimonthly frequency' };
+  }
+  if (sinkingFund !== undefined && typeof sinkingFund !== 'boolean') {
+    return { error: 'sinkingFund must be a boolean' };
+  }
+
+  return {
+    value: {
+      name: name as string,
+      amountCents: amountCents as number,
+      frequency: frequency as Frequency,
+      interval: interval as number,
+      startDate: startDate as string,
+      endDate: (endDate as string | null | undefined) ?? null,
+      semiMonthlyDay1: (semiMonthlyDay1 as number | null | undefined) ?? null,
+      semiMonthlyDay2: (semiMonthlyDay2 as number | null | undefined) ?? null,
+      sinkingFund: sinkingFund as boolean | undefined,
+    },
+  };
 }
 
 function withSinkingFundContribution(row: Selectable<RecurringItemsTable>, todayIso: string) {
@@ -130,52 +192,15 @@ apiRouter.post('/accounts/:id/recurring-items', async (req, res) => {
     return;
   }
 
-  const { name, amountCents, frequency, interval, startDate, endDate, semiMonthlyDay1, semiMonthlyDay2, sinkingFund } =
-    req.body ?? {};
-  if (typeof name !== 'string' || !name.trim()) {
-    res.status(400).json({ error: 'name is required' });
-    return;
-  }
-  if (typeof amountCents !== 'number') {
-    res.status(400).json({ error: 'amountCents must be a number' });
-    return;
-  }
-  if (!FREQUENCIES.includes(frequency)) {
-    res.status(400).json({ error: `frequency must be one of ${FREQUENCIES.join(', ')}` });
-    return;
-  }
-  if (!Number.isInteger(interval) || interval < 1) {
-    res.status(400).json({ error: 'interval must be a positive integer' });
-    return;
-  }
-  if (!isValidDateString(startDate)) {
-    res.status(400).json({ error: 'startDate must be YYYY-MM-DD' });
-    return;
-  }
-  if (endDate !== undefined && endDate !== null && !isValidDateString(endDate)) {
-    res.status(400).json({ error: 'endDate must be YYYY-MM-DD' });
-    return;
-  }
-  if (frequency === 'semimonthly' && (!isValidDayOfMonth(semiMonthlyDay1) || !isValidDayOfMonth(semiMonthlyDay2))) {
-    res.status(400).json({ error: 'semiMonthlyDay1 and semiMonthlyDay2 are required (1-31) for semimonthly frequency' });
-    return;
-  }
-  if (sinkingFund !== undefined && typeof sinkingFund !== 'boolean') {
-    res.status(400).json({ error: 'sinkingFund must be a boolean' });
+  const validated = validateRecurringItemFields(req.body);
+  if ('error' in validated) {
+    res.status(400).json({ error: validated.error });
     return;
   }
 
   const created = await recurringItemsQueries.create({
     accountId: id as number,
-    name,
-    amountCents,
-    frequency,
-    interval,
-    startDate,
-    endDate,
-    semiMonthlyDay1,
-    semiMonthlyDay2,
-    sinkingFund,
+    ...validated.value,
   });
   res.status(201).json(withSinkingFundContribution(created, new Date().toISOString().slice(0, 10)));
 });
@@ -362,6 +387,67 @@ apiRouter.get('/accounts/:id/projection', async (req, res) => {
   );
 
   res.json(projectBalance({ checkpoints, items, from, to }));
+});
+
+/**
+ * A what-if projection: the account's real recurring items plus scratch
+ * ones supplied in the request, never written anywhere. Same shape and
+ * checkpoint handling as the real projection endpoint above, so the
+ * frontend can treat the response identically.
+ */
+apiRouter.post('/accounts/:id/projection/preview', async (req, res) => {
+  const id = parseId(req.params.id);
+  const account = id === null ? undefined : await accountsQueries.get(id);
+  if (!account) {
+    res.status(404).json({ error: 'account not found' });
+    return;
+  }
+
+  const { from, to, scratchItems } = req.body ?? {};
+  if (!isValidDateString(from) || !isValidDateString(to)) {
+    res.status(400).json({ error: 'from and to must be YYYY-MM-DD' });
+    return;
+  }
+  if (to < from) {
+    res.status(400).json({ error: 'to must not be before from' });
+    return;
+  }
+  if (!account.starting_balance_date) {
+    res.status(422).json({ error: 'starting_balance_not_set' });
+    return;
+  }
+  if (!Array.isArray(scratchItems)) {
+    res.status(400).json({ error: 'scratchItems must be an array' });
+    return;
+  }
+
+  const validatedScratchItems: RecurringItemInput[] = [];
+  for (const rawScratchItem of scratchItems) {
+    const scratchItemId = (rawScratchItem as Record<string, unknown> | null)?.id;
+    if (typeof scratchItemId !== 'number') {
+      res.status(400).json({ error: 'each scratch item needs a numeric id' });
+      return;
+    }
+    const validated = validateRecurringItemFields(rawScratchItem);
+    if ('error' in validated) {
+      res.status(400).json({ error: validated.error });
+      return;
+    }
+    validatedScratchItems.push({ id: scratchItemId, ...validated.value });
+  }
+
+  const realItems = (await recurringItemsQueries.list(id as number)).map(toRecurringItemInput);
+
+  const explicitCheckpoints = (await balanceCheckpointsQueries.list(id as number)).map((row) => ({
+    date: row.date,
+    balanceCents: row.balance_cents,
+  }));
+  const checkpoints = mergeCheckpoints(
+    { date: account.starting_balance_date, balanceCents: account.starting_balance_cents },
+    explicitCheckpoints,
+  );
+
+  res.json(projectBalance({ checkpoints, items: [...realItems, ...validatedScratchItems], from, to }));
 });
 
 apiRouter.get('/net-worth', async (req, res) => {

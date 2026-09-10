@@ -18,6 +18,13 @@ export interface BalanceChartProps {
   points: BalancePoint[];
   currency: string;
   /**
+   * A second, hypothetical series (what-if) drawn dashed over the real one,
+   * for direct comparison. Must be the same length as `points` — same
+   * [from, to] range, positionally aligned dates — so it shares `points`'
+   * x-axis; ignored otherwise.
+   */
+  comparisonPoints?: BalancePoint[];
+  /**
    * Dates carrying a recorded balance correction. Only those falling inside the
    * plotted window are drawn — corrections are in the past, so nothing shows
    * until the range is moved back over them.
@@ -112,13 +119,20 @@ function markerLabel(marker: BalanceMarker): string {
   return `${marker.date} · ${direction}${(marker.driftCents / 100).toFixed(2)}`;
 }
 
-const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, markers, ariaLabel, className }) => {
+const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, comparisonPoints, markers, ariaLabel, className }) => {
+  const hasComparison = !!comparisonPoints && comparisonPoints.length === points.length;
+
   const model = useMemo(() => {
     if (points.length === 0) {
       return null;
     }
 
     const values = points.map((point) => point.valueCents);
+    // The comparison series can run higher or lower than the real one — the
+    // axis has to cover whichever is more extreme, or the dashed line clips.
+    if (hasComparison) {
+      values.push(...comparisonPoints!.map((point) => point.valueCents));
+    }
     // Zero always sits in the domain: "am I above water" is the question this
     // chart exists to answer, so the reference line is never off-screen.
     const dataMin = Math.min(0, ...values);
@@ -146,17 +160,19 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, markers, 
     const vertices = buildVertices(points, xAt);
     const runs = splitBySign(vertices);
 
+    const comparisonRuns = hasComparison ? splitBySign(buildVertices(comparisonPoints!, xAt)) : null;
+
     const lowest = points.reduce((acc, point) => (point.valueCents < acc.valueCents ? point : acc), points[0]);
     const lowestIndex = points.indexOf(lowest);
 
-    return { min, max, ticks, monthTicks, runs, xAt, yAt, lowest, lowestIndex };
-  }, [points]);
+    return { min, max, ticks, monthTicks, runs, comparisonRuns, xAt, yAt, lowest, lowestIndex };
+  }, [points, comparisonPoints, hasComparison]);
 
   if (!model) {
     return null;
   }
 
-  const { ticks, monthTicks, runs, xAt, yAt, lowest, lowestIndex } = model;
+  const { ticks, monthTicks, runs, comparisonRuns, xAt, yAt, lowest, lowestIndex } = model;
   const zeroY = yAt(0);
 
   const toLine = (run: Run) => run.vertices.map((vertex, i) => `${i === 0 ? 'M' : 'L'}${vertex.x.toFixed(1)} ${yAt(vertex.v).toFixed(1)}`).join(' ');
@@ -183,6 +199,21 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, markers, 
         ))}
         {runs.map((run, i) => (
           <path key={`line-${i}`} d={toLine(run)} fill="none" stroke={run.negative ? 'var(--warn)' : 'var(--accent)'} strokeWidth={2} strokeLinejoin="round" />
+        ))}
+
+        {/* The what-if line: dashed, no fill, no lowest-point dot — secondary
+            to the real one, but still colours by sign so crossing zero (the
+            whole point of trying a scenario) still reads at a glance. */}
+        {comparisonRuns?.map((run, i) => (
+          <path
+            key={`comparison-${i}`}
+            d={toLine(run)}
+            fill="none"
+            stroke={run.negative ? 'var(--warn)' : 'var(--accent)'}
+            strokeWidth={2}
+            strokeLinejoin="round"
+            strokeDasharray="5 4"
+          />
         ))}
 
         <circle cx={xAt(lowestIndex)} cy={yAt(lowest.valueCents)} r={3.5} fill={lowest.valueCents < 0 ? 'var(--warn)' : 'var(--accent)'} />
