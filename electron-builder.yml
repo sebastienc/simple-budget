@@ -1,3 +1,10 @@
+# better-sqlite3 already bundles a genuine prebuilt native binary for every
+# platform/arch (resolved by process.platform/arch at runtime — see its
+# lib/binding.js), so there's nothing to compile. Leaving the automatic
+# rebuild on actively breaks cross-arch/cross-platform builds: it tries to
+# node-gyp-compile from source instead of using the bundled prebuild, which
+# fails outright when building win/x64 from a macOS/arm64 host.
+npmRebuild: false
 appId: com.sebastienc.simplebudget
 productName: Simple Budget
 # productName has a space in it, which would otherwise put one in the installer
@@ -14,3 +21,38 @@ files:
 mac:
   target: dmg
   category: public.app-category.finance
+  # better-sqlite3 bundles a prebuilt binary for every platform/arch (see the
+  # npmRebuild note above); drop every one except this platform's so the DMG
+  # doesn't carry Windows/Linux binaries it'll never run. Must stay a "!"
+  # (exclude) pattern, not a positive re-include — electron-builder's
+  # node_modules copier only honors excludes from platform-specific `files`.
+  files:
+    - '!node_modules/better-sqlite3/prebuilds/!(darwin-arm64).node'
+win:
+  # x64 covers the overwhelming majority of Windows machines; arm64 Windows
+  # can still run it via emulation. Pinned rather than left to default,
+  # which otherwise follows the *build host's* architecture.
+  target:
+    - target: nsis
+      arch: [x64]
+  # See the mac.files comment — same trim, kept binary is win32-x64 here.
+  files:
+    - '!node_modules/better-sqlite3/prebuilds/!(win32-x64).node'
+linux:
+  # AppImage: a single self-contained executable, no install step and no
+  # distro-specific packaging (.deb/.rpm) to maintain — the closest match to
+  # "download and run" on macOS/Windows. x64 covers the common case; better-
+  # sqlite3 also has linux-arm64 prebuilds if that's ever worth adding.
+  target:
+    - target: AppImage
+      arch: [x64]
+  category: Office
+  # Ties the .desktop filename (and thus StartupWMClass/app_id) to the
+  # `desktopName` set in package.json, so window managers correctly group an
+  # AppImage-run window with its launcher — otherwise skipped.
+  syncDesktopName: true
+  # See the mac.files comment — same trim, kept binary is linux-x64 here.
+  # (This also drops linuxmusl-x64/-arm64, which AppImage's glibc base never
+  # needs.)
+  files:
+    - '!node_modules/better-sqlite3/prebuilds/!(linux-x64).node'

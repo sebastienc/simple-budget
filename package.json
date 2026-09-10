@@ -2,6 +2,7 @@
   "name": "simple-budget",
   "private": true,
   "version": "1.0.1",
+  "desktopName": "simple-budget.desktop",
   "type": "module",
   "main": "dist-electron/main/index.js",
   "scripts": {
