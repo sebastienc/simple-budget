@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.0](https://github.com/sebastienc/simple-budget/compare/v1.0.1...v1.1.0) (2026-09-10)
+
+
+### Features
+
+* add per-account currency ([c5e946c](https://github.com/sebastienc/simple-budget/commit/c5e946c7f9b25caa8d45d755718dbc47a79bf299))
+* add what-if scenario modeling ([ef28306](https://github.com/sebastienc/simple-budget/commit/ef28306a68f5b98bfb0860766f67aaeed29c604b))
+* build and release Windows and Linux installers ([fa473de](https://github.com/sebastienc/simple-budget/commit/fa473de486bf635095291284e0a78e7168f36aa0))
+
+
+### Fixes
+
+* detect cloud-sync folders on Windows and Linux ([d7043d1](https://github.com/sebastienc/simple-budget/commit/d7043d140592df575598152de2dc6d79a8b5df75))
+* reject cross-origin requests to the local API ([8854435](https://github.com/sebastienc/simple-budget/commit/8854435f9c996ab4ed3d8e4c88a556bd6303fc7b))
+
+
+### Packaging
+
+* give the installer a filename without spaces ([278c243](https://github.com/sebastienc/simple-budget/commit/278c243abdd61c98c0766edff0c62781798c3415))
+
 ## [1.0.1](https://github.com/sebastienc/simple-budget/compare/v1.0.0...v1.0.1) (2026-09-05)
 
 
