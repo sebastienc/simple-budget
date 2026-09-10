@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import clsx from 'clsx';
-import { formatCentsAxis } from '@/lib/money';
+import { formatCents, formatCentsAxis } from '@/lib/money';
 import { formatISODate } from '@/lib/dates';
 
 export interface BalancePoint {
@@ -215,6 +215,21 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, compariso
             strokeDasharray="5 4"
           />
         ))}
+
+        {/* Invisible hit-areas for a native per-day tooltip — drawn under the
+            markers below so a day with a correction still shows its own
+            richer tooltip rather than this plain one. */}
+        {points.map((point, i) => (
+          <circle key={`point-${point.date}`} cx={xAt(i)} cy={yAt(point.valueCents)} r={8} fill="transparent">
+            <title>{`${formatISODate(point.date, 'd MMM yyyy')} · ${formatCents(point.valueCents, currency)}`}</title>
+          </circle>
+        ))}
+        {hasComparison &&
+          comparisonPoints!.map((point, i) => (
+            <circle key={`comparison-point-${point.date}`} cx={xAt(i)} cy={yAt(point.valueCents)} r={8} fill="transparent">
+              <title>{`${formatISODate(point.date, 'd MMM yyyy')} · ${formatCents(point.valueCents, currency)}`}</title>
+            </circle>
+          ))}
 
         <circle cx={xAt(lowestIndex)} cy={yAt(lowest.valueCents)} r={3.5} fill={lowest.valueCents < 0 ? 'var(--warn)' : 'var(--accent)'} />
 

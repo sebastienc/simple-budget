@@ -39,6 +39,23 @@ const CurrencyGroup: React.FC<CurrencyGroupProps> = ({ group, accounts, heading 
       <AccountHero accountName={heading} currency={group.currency} summary={summary} sinkingFund={null} accuracy={null} />
       <BalanceChart points={chartPoints} currency={group.currency} ariaLabel={heading} />
 
+      {summary && (
+        <div className="flex flex-wrap gap-6">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-3">{t('OpeningBalance')}</span>
+            <Money cents={summary.openingCents} currency={group.currency} autoTone className="text-sm" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-3">{t('ClosingBalance')}</span>
+            <Money cents={summary.closingCents} currency={group.currency} autoTone className="text-sm" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-3">{t('ChangeOverPeriod')}</span>
+            <Money cents={summary.closingCents - summary.openingCents} currency={group.currency} signed autoTone className="text-sm" />
+          </div>
+        </div>
+      )}
+
       {includedAccounts.length > 0 && (
         <Panel title={t('AllAccounts')} note={String(includedAccounts.length)}>
           {includedAccounts.map((account) => (
