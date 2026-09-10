@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/sebastienc/simple-budget/compare/v1.2.0...v1.2.1) (2026-09-10)
+
+
+### Fixes
+
+* replace native-title chart tooltips with a real hover tooltip ([4277d1b](https://github.com/sebastienc/simple-budget/commit/4277d1b484e343f6e156d9bf864f49fa4a5a6670))
+
 ## [1.2.0](https://github.com/sebastienc/simple-budget/compare/v1.1.0...v1.2.0) (2026-09-10)
 
 
