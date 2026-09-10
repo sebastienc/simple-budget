@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/sebastienc/simple-budget/compare/v1.1.0...v1.2.0) (2026-09-10)
+
+
+### Features
+
+* add a button to create a new account ([7dca897](https://github.com/sebastienc/simple-budget/commit/7dca897aaffb2c3278826aaee51913902b200f14))
+* add data-point tooltips and net-worth metrics ([4b9d9e1](https://github.com/sebastienc/simple-budget/commit/4b9d9e1f4fa6ecbcbdba005b60691f1dea8f8780))
+
 ## [1.1.0](https://github.com/sebastienc/simple-budget/compare/v1.0.1...v1.1.0) (2026-09-10)
 
 
