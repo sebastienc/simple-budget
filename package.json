@@ -63,5 +63,6 @@
     "vitest": "^5.0.0"
   },
   "description": "A local-only, single-device cash-flow budgeting app.",
-  "author": "Sebastien Coutu"
+  "author": "Sebastien Coutu",
+  "license": "MIT"
 }

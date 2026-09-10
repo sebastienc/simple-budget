@@ -137,3 +137,7 @@ override it for one release, put `Release-As: 1.2.3` in a commit footer.
 ## Roadmap
 
 See [ROADMAP.md](./ROADMAP.md) for missing features and known gaps.
+
+## License
+
+[MIT](./LICENSE)
