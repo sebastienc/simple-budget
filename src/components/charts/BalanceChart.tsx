@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { formatCents, formatCentsAxis } from '@/lib/money';
+import { formatCents, formatCentsAxis, formatCentsSigned } from '@/lib/money';
 import { formatISODate } from '@/lib/dates';
 
 export interface BalancePoint {
@@ -111,16 +112,10 @@ function splitBySign(vertices: Vertex[]): Run[] {
   return runs;
 }
 
-function markerLabel(marker: BalanceMarker): string {
-  if (marker.driftCents === null) {
-    return marker.date;
-  }
-  const direction = marker.driftCents > 0 ? '+' : '';
-  return `${marker.date} · ${direction}${(marker.driftCents / 100).toFixed(2)}`;
-}
-
 const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, comparisonPoints, markers, ariaLabel, className }) => {
+  const { t } = useTranslation();
   const hasComparison = !!comparisonPoints && comparisonPoints.length === points.length;
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const model = useMemo(() => {
     if (points.length === 0) {
@@ -182,85 +177,139 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, compariso
     return `${toLine(run)} L${last.x.toFixed(1)} ${zeroY.toFixed(1)} L${first.x.toFixed(1)} ${zeroY.toFixed(1)} Z`;
   };
 
+  // A single native `title` tooltip can't track continuous scrubbing across
+  // many adjacent points — it needs the cursor to sit still, and doesn't
+  // reliably re-arm moving straight from one element to a neighbour. This
+  // tracks the cursor instead and renders a real, always-current tooltip.
+  const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (points.length === 1) {
+      setHoveredIndex(0);
+      return;
+    }
+    const svgX = ((event.clientX - rect.left) / rect.width) * W;
+    const fraction = (svgX - PAD_L) / PLOT_W;
+    const index = Math.round(fraction * (points.length - 1));
+    setHoveredIndex(Math.max(0, Math.min(points.length - 1, index)));
+  };
+  const handleMouseLeave = () => setHoveredIndex(null);
+
+  const hoveredPoint = hoveredIndex !== null ? points[hoveredIndex] : null;
+  const hoveredComparisonPoint = hoveredIndex !== null && hasComparison ? comparisonPoints![hoveredIndex] : null;
+  const hoveredMarker = hoveredPoint ? (markers ?? []).find((marker) => marker.date === hoveredPoint.date) : undefined;
+
+  // Anchored to the left of the crosshair by default; flipped to the right
+  // near the chart's right edge so it never clips off outside the card.
+  const tooltipLeftPct = hoveredIndex !== null ? (xAt(hoveredIndex) / W) * 100 : 0;
+  const tooltipNearRightEdge = tooltipLeftPct > 70;
+
   return (
     <div className={clsx('rounded-xl border border-rule bg-surface-raised p-4', className)}>
-      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label={ariaLabel}>
-        {ticks.map((tick) => (
-          <g key={tick}>
-            <line x1={PAD_L} y1={yAt(tick)} x2={W - PAD_R} y2={yAt(tick)} stroke="var(--rule)" strokeWidth={1} strokeDasharray={tick === 0 ? '3 3' : undefined} />
-            <text x={PAD_L - 10} y={yAt(tick) + 4} textAnchor="end" fill="var(--ink-3)" className="font-mono" fontSize={10}>
-              {formatCentsAxis(tick, currency)}
-            </text>
-          </g>
-        ))}
-
-        {runs.map((run, i) => (
-          <path key={`area-${i}`} d={toArea(run)} fill={run.negative ? 'var(--warn)' : 'var(--accent)'} fillOpacity={run.negative ? 0.14 : 0.1} />
-        ))}
-        {runs.map((run, i) => (
-          <path key={`line-${i}`} d={toLine(run)} fill="none" stroke={run.negative ? 'var(--warn)' : 'var(--accent)'} strokeWidth={2} strokeLinejoin="round" />
-        ))}
-
-        {/* The what-if line: dashed, no fill, no lowest-point dot — secondary
-            to the real one, but still colours by sign so crossing zero (the
-            whole point of trying a scenario) still reads at a glance. */}
-        {comparisonRuns?.map((run, i) => (
-          <path
-            key={`comparison-${i}`}
-            d={toLine(run)}
-            fill="none"
-            stroke={run.negative ? 'var(--warn)' : 'var(--accent)'}
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeDasharray="5 4"
-          />
-        ))}
-
-        {/* Invisible hit-areas for a native per-day tooltip — drawn under the
-            markers below so a day with a correction still shows its own
-            richer tooltip rather than this plain one. */}
-        {points.map((point, i) => (
-          <circle key={`point-${point.date}`} cx={xAt(i)} cy={yAt(point.valueCents)} r={8} fill="transparent">
-            <title>{`${formatISODate(point.date, 'd MMM yyyy')} · ${formatCents(point.valueCents, currency)}`}</title>
-          </circle>
-        ))}
-        {hasComparison &&
-          comparisonPoints!.map((point, i) => (
-            <circle key={`comparison-point-${point.date}`} cx={xAt(i)} cy={yAt(point.valueCents)} r={8} fill="transparent">
-              <title>{`${formatISODate(point.date, 'd MMM yyyy')} · ${formatCents(point.valueCents, currency)}`}</title>
-            </circle>
+      <div className="relative">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="block h-auto w-full"
+          role="img"
+          aria-label={ariaLabel}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
+          {ticks.map((tick) => (
+            <g key={tick}>
+              <line x1={PAD_L} y1={yAt(tick)} x2={W - PAD_R} y2={yAt(tick)} stroke="var(--rule)" strokeWidth={1} strokeDasharray={tick === 0 ? '3 3' : undefined} />
+              <text x={PAD_L - 10} y={yAt(tick) + 4} textAnchor="end" fill="var(--ink-3)" className="font-mono" fontSize={10}>
+                {formatCentsAxis(tick, currency)}
+              </text>
+            </g>
           ))}
 
-        <circle cx={xAt(lowestIndex)} cy={yAt(lowest.valueCents)} r={3.5} fill={lowest.valueCents < 0 ? 'var(--warn)' : 'var(--accent)'} />
+          {runs.map((run, i) => (
+            <path key={`area-${i}`} d={toArea(run)} fill={run.negative ? 'var(--warn)' : 'var(--accent)'} fillOpacity={run.negative ? 0.14 : 0.1} />
+          ))}
+          {runs.map((run, i) => (
+            <path key={`line-${i}`} d={toLine(run)} fill="none" stroke={run.negative ? 'var(--warn)' : 'var(--accent)'} strokeWidth={2} strokeLinejoin="round" />
+          ))}
 
-        {(markers ?? []).map((marker) => {
-          const index = points.findIndex((point) => point.date === marker.date);
-          if (index === -1) {
-            return null;
-          }
-          const ranHigh = marker.driftCents !== null && marker.driftCents > 0;
-          return (
-            <circle
-              key={marker.date}
-              cx={xAt(index)}
-              cy={yAt(points[index].valueCents)}
-              r={5}
-              fill="var(--surface-raised)"
-              stroke={ranHigh ? 'var(--warn)' : 'var(--accent)'}
-              strokeWidth={2.5}
-            >
-              {/* A native tooltip: no JS, no tooltip library. */}
-              <title>{markerLabel(marker)}</title>
-            </circle>
-          );
-        })}
+          {/* The what-if line: dashed, no fill, no lowest-point dot — secondary
+              to the real one, but still colours by sign so crossing zero (the
+              whole point of trying a scenario) still reads at a glance. */}
+          {comparisonRuns?.map((run, i) => (
+            <path
+              key={`comparison-${i}`}
+              d={toLine(run)}
+              fill="none"
+              stroke={run.negative ? 'var(--warn)' : 'var(--accent)'}
+              strokeWidth={2}
+              strokeLinejoin="round"
+              strokeDasharray="5 4"
+            />
+          ))}
 
-        {monthTicks.map(({ point, index }) => (
-          <text key={point.date} x={xAt(index)} y={H - PAD_B + 22} textAnchor={index === 0 ? 'start' : 'middle'} fill="var(--ink-3)" className="font-mono" fontSize={10}>
-            {formatISODate(point.date, 'MMM')}
-          </text>
-        ))}
-      </svg>
+          <circle cx={xAt(lowestIndex)} cy={yAt(lowest.valueCents)} r={3.5} fill={lowest.valueCents < 0 ? 'var(--warn)' : 'var(--accent)'} />
+
+          {(markers ?? []).map((marker) => {
+            const index = points.findIndex((point) => point.date === marker.date);
+            if (index === -1) {
+              return null;
+            }
+            const ranHigh = marker.driftCents !== null && marker.driftCents > 0;
+            return (
+              <circle
+                key={marker.date}
+                cx={xAt(index)}
+                cy={yAt(points[index].valueCents)}
+                r={5}
+                fill="var(--surface-raised)"
+                stroke={ranHigh ? 'var(--warn)' : 'var(--accent)'}
+                strokeWidth={2.5}
+              />
+            );
+          })}
+
+          {monthTicks.map(({ point, index }) => (
+            <text key={point.date} x={xAt(index)} y={H - PAD_B + 22} textAnchor={index === 0 ? 'start' : 'middle'} fill="var(--ink-3)" className="font-mono" fontSize={10}>
+              {formatISODate(point.date, 'MMM')}
+            </text>
+          ))}
+
+          {hoveredIndex !== null && (
+            <>
+              <line x1={xAt(hoveredIndex)} y1={PAD_T} x2={xAt(hoveredIndex)} y2={PAD_T + PLOT_H} stroke="var(--ink-3)" strokeWidth={1} strokeDasharray="2 3" />
+              <circle cx={xAt(hoveredIndex)} cy={yAt(hoveredPoint!.valueCents)} r={4} fill="var(--surface-raised)" stroke="var(--accent)" strokeWidth={2} />
+              {hoveredComparisonPoint && (
+                <circle
+                  cx={xAt(hoveredIndex)}
+                  cy={yAt(hoveredComparisonPoint.valueCents)}
+                  r={4}
+                  fill="var(--surface-raised)"
+                  stroke={hoveredComparisonPoint.valueCents < 0 ? 'var(--warn)' : 'var(--accent)'}
+                  strokeWidth={2}
+                />
+              )}
+            </>
+          )}
+        </svg>
+
+        {hoveredPoint && (
+          <div
+            className="pointer-events-none absolute top-0 z-10 flex flex-col gap-0.5 rounded-md border border-rule bg-surface px-2.5 py-1.5 text-xs whitespace-nowrap shadow-md"
+            style={{ left: `${tooltipLeftPct}%`, transform: tooltipNearRightEdge ? 'translateX(-100%)' : undefined }}
+          >
+            <span className="font-medium text-ink">{formatISODate(hoveredPoint.date, 'd MMM yyyy')}</span>
+            <span className="font-mono text-ink-2">{formatCents(hoveredPoint.valueCents, currency)}</span>
+            {hoveredComparisonPoint && (
+              <span className="font-mono text-ink-3">
+                {formatCents(hoveredComparisonPoint.valueCents, currency)} ({t('WhatIf')})
+              </span>
+            )}
+            {hoveredMarker && (
+              <span className="text-ink-3">
+                {hoveredMarker.driftCents === null ? t('AccuracyStartingPoint') : formatCentsSigned(hoveredMarker.driftCents, currency)}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
