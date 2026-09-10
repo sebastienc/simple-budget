@@ -33,6 +33,11 @@ Comparing against PocketSmith and similar cash-flow-forecasting apps (see conver
 - [x] Per-account currency — each account has a currency (CAD/USD/EUR/GBP), set at creation and editable afterward (safe, since cents never encoded currency — it's purely a display label). The "All accounts" net-worth view groups by currency rather than converting: one hero/chart/list per currency, never summed together, so no exchange rate is needed.
 - [ ] Data entry automation for recurring items — worth exploring, but deliberately avoiding connecting to the user's bank/credit card portal (screen-scraping or Plaid-style aggregators) if at all possible, since that's a large trust and security surface for a local-only app. Needs more thought before scoping; no clear approach yet.
 
+## From real usage
+
+- [ ] Recurring transfers between accounts — moving money from one account to another on a schedule (e.g. an automatic monthly transfer into a savings account), rather than modeling it as an expense on one account with no corresponding income on the other. The projection engine computes each account independently and never looks across accounts, so the clean fit is a transfer creating two linked ordinary recurring items behind the scenes (a debit on the source, a credit on the destination, sharing a group id) — no changes needed to the core recurrence/projection math, just a paired create/edit/delete and a form that takes two accounts instead of one.
+- [ ] Shared-expense splitting by income ratio — for expenses split with a partner according to a ratio of incomes, something to show "your share / their share" next to the item so the right amount doesn't need figuring out by hand. Likely shape: a "shared" flag + ratio on a recurring item, mirroring how `sinkingFund` already works today — informational only, the item still debits the account in full as now. A fuller running "who owes whom" ledger is a bigger step, not yet decided if it's worth it.
+
 ## Dropped
 
 - Subscription/recurring-charge verification checklist — in the original spreadsheet this was a list of which websites had a credit card on file, to make card-expiry renewals easier. Not a cash-flow concern, and out of scope for this app now that credit card balances are just paid off a few times a month via recurring items.
