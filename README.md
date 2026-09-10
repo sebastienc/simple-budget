@@ -6,9 +6,13 @@ Not a category-envelope budget or a bank-synced transaction ledger — it's a da
 
 ## Features
 
-- **Accounts** with a starting balance and an "as of" anchor date.
+- **Accounts**, each with its own currency (CAD/USD/EUR/GBP) and a starting balance with an "as of" anchor date.
 - **Recurring items** — daily, weekly, monthly, yearly, or semi-monthly (two configurable days per month, e.g. the 15th and last day, with automatic weekend-to-Friday shifting to match real payroll schedules).
 - **Projection table** — a day-by-day running balance over any date range, with negative-balance days flagged.
+- **What-if scenarios** — add a hypothetical recurring item that's never saved, overlaid as a dashed line on the real projection to see the gap directly.
+- **Balance corrections** — record what the balance actually was on a given date; the projection snaps to the most recent one, and the app tracks how far off its own forecast has been running.
+- **Sinking funds** — flag a lumpy annual or quarterly bill (property tax, insurance) to see a stable monthly cost, and a catch-up figure for what it'd take starting today.
+- **Net worth** — a combined view across every account, grouped by currency (never summed across currencies), with opening balance, closing balance, and change over the period.
 - **Backup / restore** — export a full SQLite snapshot, or import one to restore (Settings menu).
 - **Automatic backups** — point the app at a folder your cloud client already syncs (Google Drive, Dropbox, iCloud) and it writes a snapshot there on quit and once a day, keeping the last N per machine. Restoring one is also how you hand the budget between two computers.
 - English and French (`en-US` / `fr-CA`) UI.
