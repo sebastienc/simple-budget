@@ -33,12 +33,14 @@ export function useAccounts() {
 
   const createAccount = useCallback(
     async (name: string, currency: string) => {
-      await fetch('/api/accounts', {
+      const response = await fetch('/api/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, currency }),
       });
+      const created: Account = await response.json();
       await refresh();
+      return created;
     },
     [refresh],
   );

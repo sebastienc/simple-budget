@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from 'react-aria-components';
+import { PlusIcon } from '@heroicons/react/24/solid';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import type { Account } from '@/data/useAccounts';
@@ -10,13 +11,14 @@ export interface AccountSwitcherProps {
   isViewingNetWorth: boolean;
   onSelectAccount: (accountId: number) => void;
   onSelectNetWorth: () => void;
+  onAddAccount: () => void;
 }
 
 const pill = 'cursor-default rounded-md px-3 py-1.5 text-sm whitespace-nowrap outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-accent';
 const selected = 'bg-surface-raised font-semibold text-ink shadow-sm';
 const unselected = 'text-ink-2 hover:text-ink';
 
-const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ accounts, selectedAccountId, isViewingNetWorth, onSelectAccount, onSelectNetWorth }) => {
+const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ accounts, selectedAccountId, isViewingNetWorth, onSelectAccount, onSelectNetWorth, onAddAccount }) => {
   const { t } = useTranslation();
 
   if (accounts.length === 0) {
@@ -39,6 +41,9 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ accounts, selectedAcc
           {t('AllAccounts')}
         </Button>
       )}
+      <Button onPress={onAddAccount} aria-label={t('AddAccount')} className={clsx(pill, unselected, 'px-2')}>
+        <PlusIcon className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
