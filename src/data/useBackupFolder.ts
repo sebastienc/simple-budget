@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 export interface DetectedFolder {
   path: string;
   label: string;
-  provider: 'google-drive' | 'dropbox' | 'icloud' | 'onedrive';
+  provider: 'google-drive' | 'dropbox' | 'icloud' | 'onedrive' | 'insync';
 }
 
 export interface Snapshot {

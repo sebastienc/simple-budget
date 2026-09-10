@@ -7,7 +7,7 @@ export interface DetectedFolder {
   path: string;
   /** What to call it in the UI, e.g. "Google Drive (sebastien@example.com)". */
   label: string;
-  provider: 'google-drive' | 'dropbox' | 'icloud' | 'onedrive';
+  provider: 'google-drive' | 'dropbox' | 'icloud' | 'onedrive' | 'insync';
 }
 
 /**
@@ -57,16 +57,7 @@ function describeCloudStorageEntry(entry: string): DetectedFolder | null {
   }
 }
 
-/**
- * Cloud-sync folders this machine already has, offered as one-click choices.
- *
- * Detection only — the app never writes anywhere it wasn't pointed at. It
- * exists because the app deliberately has no native file dialogs (they don't
- * work in a browser tab), and asking someone to type
- * `~/Library/CloudStorage/GoogleDrive-…/My Drive` from memory is not a
- * reasonable substitute for a folder picker.
- */
-export async function detectSyncedFolders(): Promise<DetectedFolder[]> {
+async function macCandidates(): Promise<DetectedFolder[]> {
   const candidates: DetectedFolder[] = [];
 
   try {
@@ -77,7 +68,7 @@ export async function detectSyncedFolders(): Promise<DetectedFolder[]> {
       }
     }
   } catch {
-    // No CloudStorage directory: nothing is mounted, or this isn't macOS.
+    // No CloudStorage directory: nothing is mounted.
   }
 
   // Pre-Big-Sur Google Drive, and Dropbox's own default, both live in $HOME.
@@ -86,6 +77,51 @@ export async function detectSyncedFolders(): Promise<DetectedFolder[]> {
     { path: join(homedir(), 'Dropbox'), label: 'Dropbox', provider: 'dropbox' },
     { path: join(homedir(), 'Library', 'Mobile Documents', 'com~apple~CloudDocs'), label: 'iCloud Drive', provider: 'icloud' },
   );
+
+  return candidates;
+}
+
+function windowsCandidates(): DetectedFolder[] {
+  const candidates: DetectedFolder[] = [];
+
+  // OneDrive sets this itself, pointed at the actual synced folder — more
+  // reliable than guessing a name, since a work/school account's folder is
+  // named "OneDrive - <Company>", not "OneDrive".
+  if (process.env.OneDrive) {
+    candidates.push({ path: process.env.OneDrive, label: 'OneDrive', provider: 'onedrive' });
+  }
+
+  candidates.push(
+    // Only "Mirror files" mode creates this; the "Stream files" default
+    // (a virtual G:\ drive) has nothing on disk to detect.
+    { path: join(homedir(), 'Google Drive', 'My Drive'), label: 'Google Drive', provider: 'google-drive' },
+    { path: join(homedir(), 'Dropbox'), label: 'Dropbox', provider: 'dropbox' },
+  );
+
+  return candidates;
+}
+
+function linuxCandidates(): DetectedFolder[] {
+  return [
+    { path: join(homedir(), 'Dropbox'), label: 'Dropbox', provider: 'dropbox' },
+    // Insync (the most common unofficial Google Drive/OneDrive client on
+    // Linux) is configurable per-account; this only catches its default root.
+    { path: join(homedir(), 'Insync'), label: 'Insync', provider: 'insync' },
+  ];
+}
+
+/**
+ * Cloud-sync folders this machine already has, offered as one-click choices.
+ *
+ * Detection only — the app never writes anywhere it wasn't pointed at. It
+ * exists because the app deliberately has no native file dialogs (they don't
+ * work in a browser tab), and asking someone to type
+ * `~/Library/CloudStorage/GoogleDrive-…/My Drive` from memory is not a
+ * reasonable substitute for a folder picker.
+ */
+export async function detectSyncedFolders(): Promise<DetectedFolder[]> {
+  const candidates =
+    process.platform === 'darwin' ? await macCandidates() : process.platform === 'win32' ? windowsCandidates() : linuxCandidates();
 
   const existing = await Promise.all(candidates.map(async (folder) => ((await isWritableDirectory(folder.path)) ? folder : null)));
 
