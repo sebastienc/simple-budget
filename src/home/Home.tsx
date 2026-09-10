@@ -113,7 +113,7 @@ const Home: React.FC = () => {
   return (
     <PageLayout toolbar={toolbar}>
       <div className="flex items-start justify-between gap-6">
-        <AccountHero accountName={currentAccount.name} summary={summary} sinkingFund={sinkingFund} accuracy={accuracy} />
+        <AccountHero accountName={currentAccount.name} currency={currentAccount.currency} summary={summary} sinkingFund={sinkingFund} accuracy={accuracy} />
         <Button variant="link" size="sm" className="flex-none" onPress={() => setIsEditingAccount(true)}>
           {t('EditAccount')}
         </Button>
@@ -123,16 +123,16 @@ const Home: React.FC = () => {
 
       <div className="flex flex-col gap-3">
         <RangeControl from={from} to={to} onFromChange={setFrom} onToChange={setTo} />
-        <BalanceChart points={chartPoints} markers={chartMarkers} ariaLabel={t('Projection')} />
+        <BalanceChart points={chartPoints} currency={currentAccount.currency} markers={chartMarkers} ariaLabel={t('Projection')} />
       </div>
 
       <div className="grid gap-10 md:grid-cols-[1.15fr_1fr]">
-        <RecurringItemsPanel accountId={currentAccount.id} onItemsChanged={bumpProjection} />
-        <UpcomingPanel summary={summary} />
+        <RecurringItemsPanel accountId={currentAccount.id} currency={currentAccount.currency} onItemsChanged={bumpProjection} />
+        <UpcomingPanel currency={currentAccount.currency} summary={summary} />
       </div>
 
-      <ProjectionTable days={days} summary={summary} />
-      <BalanceCheckpointsPanel accountId={currentAccount.id} onCheckpointsChanged={bumpProjection} />
+      <ProjectionTable days={days} currency={currentAccount.currency} summary={summary} />
+      <BalanceCheckpointsPanel accountId={currentAccount.id} currency={currentAccount.currency} onCheckpointsChanged={bumpProjection} />
     </PageLayout>
   );
 };

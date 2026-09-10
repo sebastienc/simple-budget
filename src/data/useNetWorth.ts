@@ -5,15 +5,21 @@ export interface NetWorthDay {
   totalCents: number;
 }
 
+/** One currency's worth of the combined view — accounts in different currencies are never summed together. */
+export interface NetWorthGroup {
+  currency: string;
+  includedAccountIds: number[];
+  days: NetWorthDay[];
+}
+
 export function useNetWorth(from: string, to: string, refreshToken: number = 0) {
-  const [days, setDays] = useState<NetWorthDay[]>([]);
-  const [includedAccountIds, setIncludedAccountIds] = useState<number[]>([]);
+  const [groups, setGroups] = useState<NetWorthGroup[]>([]);
   const [excludedAccountIds, setExcludedAccountIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!from || !to) {
-      setDays([]);
+      setGroups([]);
       setIsLoading(false);
       return;
     }
@@ -27,8 +33,7 @@ export function useNetWorth(from: string, to: string, refreshToken: number = 0) 
         return;
       }
       const body = await response.json();
-      setDays(body.days ?? []);
-      setIncludedAccountIds(body.includedAccountIds ?? []);
+      setGroups(body.groups ?? []);
       setExcludedAccountIds(body.excludedAccountIds ?? []);
       setIsLoading(false);
     })();
@@ -38,5 +43,5 @@ export function useNetWorth(from: string, to: string, refreshToken: number = 0) 
     };
   }, [from, to, refreshToken]);
 
-  return { days, includedAccountIds, excludedAccountIds, isLoading };
+  return { groups, excludedAccountIds, isLoading };
 }

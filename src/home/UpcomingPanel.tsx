@@ -10,6 +10,7 @@ import { formatISODate, todayISO } from '@/lib/dates';
 import type { ProjectionEvent, ProjectionSummary } from '@/lib/projection';
 
 export interface UpcomingPanelProps {
+  currency: string;
   summary: ProjectionSummary | null;
 }
 
@@ -38,7 +39,7 @@ function dayLabel(event: ProjectionEvent, t: TFunction): string {
 }
 
 /** Everything landing that day, and the day's net. */
-const DaySummary: React.FC<{ event: ProjectionEvent; t: TFunction }> = ({ event, t }) => (
+const DaySummary: React.FC<{ event: ProjectionEvent; currency: string; t: TFunction }> = ({ event, currency, t }) => (
   <>
     {/* flex-1 so the chevron, name and amount don't get spread evenly by the
         row's justify-between — the name belongs next to the chevron. */}
@@ -46,11 +47,11 @@ const DaySummary: React.FC<{ event: ProjectionEvent; t: TFunction }> = ({ event,
       <span className="truncate text-sm text-ink">{dayLabel(event, t)}</span>
       <span className="font-mono text-xs text-ink-3">{formatISODate(event.date, 'EEE d MMM')}</span>
     </div>
-    <Money cents={event.dailyTotalCents} signed autoTone className="flex-none text-sm" />
+    <Money cents={event.dailyTotalCents} currency={currency} signed autoTone className="flex-none text-sm" />
   </>
 );
 
-const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
+const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ currency, summary }) => {
   const { t } = useTranslation();
 
   if (!summary) {
@@ -74,7 +75,7 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
         // padding keeps it aligned with the days that do.
         event.items.length === 1 ? (
           <div key={event.date} className={clsx(row, rowRule, 'pl-6')}>
-            <DaySummary event={event} t={t} />
+            <DaySummary event={event} currency={currency} t={t} />
           </div>
         ) : (
           <Disclosure key={event.date} className={rowRule}>
@@ -83,7 +84,7 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
                 <Heading className="contents">
                   <Button slot="trigger" className={clsx(row, 'cursor-default items-center rounded-sm outline-hidden focus-visible:ring-2 focus-visible:ring-accent')}>
                     <ChevronRightIcon className={clsx('h-3 w-3 flex-none text-ink-3 transition-transform', isExpanded && 'rotate-90')} />
-                    <DaySummary event={event} t={t} />
+                    <DaySummary event={event} currency={currency} t={t} />
                   </Button>
                 </Heading>
 
@@ -93,7 +94,7 @@ const UpcomingPanel: React.FC<UpcomingPanelProps> = ({ summary }) => {
                   {event.items.map((item) => (
                     <div key={item.id} className="flex items-baseline justify-between gap-3 py-1 pl-6">
                       <span className="truncate text-xs text-ink-2">{item.name}</span>
-                      <Money cents={item.amountCents} signed autoTone className="flex-none text-xs" />
+                      <Money cents={item.amountCents} currency={currency} signed autoTone className="flex-none text-xs" />
                     </div>
                   ))}
                 </DisclosurePanel>

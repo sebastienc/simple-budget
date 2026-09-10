@@ -4,6 +4,7 @@
   "StartingBalanceDate": "As of",
   "SetStartingBalance": "Set starting balance",
   "AccountName": "Account name",
+  "Currency": "Currency",
   "CreateAccount": "Create account",
   "RecurringItems": "Recurring items",
   "AddRecurringItem": "Add recurring item",

@@ -24,6 +24,7 @@ import { snapshotNow } from '../backup/schedule';
 export const apiRouter = Router();
 
 const FREQUENCIES: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'semimonthly'];
+const CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP'];
 
 function isValidDateString(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -54,12 +55,16 @@ apiRouter.get('/accounts', async (_req, res) => {
 });
 
 apiRouter.post('/accounts', async (req, res) => {
-  const { name } = req.body ?? {};
+  const { name, currency } = req.body ?? {};
   if (typeof name !== 'string' || !name.trim()) {
     res.status(400).json({ error: 'name is required' });
     return;
   }
-  res.status(201).json(toAccountJson(await accountsQueries.create({ name })));
+  if (!CURRENCIES.includes(currency)) {
+    res.status(400).json({ error: `currency must be one of ${CURRENCIES.join(', ')}` });
+    return;
+  }
+  res.status(201).json(toAccountJson(await accountsQueries.create({ name, currency })));
 });
 
 apiRouter.patch('/accounts/:id', async (req, res) => {
@@ -74,9 +79,13 @@ apiRouter.patch('/accounts/:id', async (req, res) => {
     return;
   }
 
-  const { name, startingBalanceCents, startingBalanceDate } = req.body ?? {};
+  const { name, currency, startingBalanceCents, startingBalanceDate } = req.body ?? {};
   if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
     res.status(400).json({ error: 'name must be a non-empty string' });
+    return;
+  }
+  if (currency !== undefined && !CURRENCIES.includes(currency)) {
+    res.status(400).json({ error: `currency must be one of ${CURRENCIES.join(', ')}` });
     return;
   }
   if (startingBalanceCents !== undefined && typeof startingBalanceCents !== 'number') {
@@ -88,7 +97,7 @@ apiRouter.patch('/accounts/:id', async (req, res) => {
     return;
   }
 
-  res.json(toAccountJson(await accountsQueries.update(id, { name, startingBalanceCents, startingBalanceDate })));
+  res.json(toAccountJson(await accountsQueries.update(id, { name, currency, startingBalanceCents, startingBalanceDate })));
 });
 
 apiRouter.delete('/accounts/:id', async (req, res) => {
@@ -371,7 +380,7 @@ apiRouter.get('/net-worth', async (req, res) => {
   const excludedAccountIds = allAccounts.filter((account) => !account.starting_balance_date).map((account) => account.id);
 
   if (included.length === 0) {
-    res.json({ includedAccountIds: [], excludedAccountIds, days: [] });
+    res.json({ groups: [], excludedAccountIds });
     return;
   }
 
@@ -381,11 +390,18 @@ apiRouter.get('/net-worth', async (req, res) => {
   );
 
   if (effectiveFrom > to) {
-    res.json({ includedAccountIds: included.map((account) => account.id), excludedAccountIds, days: [] });
+    res.json({
+      groups: groupByCurrency(included).map((accounts) => ({
+        currency: accounts[0].currency,
+        includedAccountIds: accounts.map((account) => account.id),
+        days: [],
+      })),
+      excludedAccountIds,
+    });
     return;
   }
 
-  const seriesList = await Promise.all(
+  const withSeries = await Promise.all(
     included.map(async (account) => {
       const items = (await recurringItemsQueries.list(account.id)).map(toRecurringItemInput);
       const explicitCheckpoints = (await balanceCheckpointsQueries.list(account.id)).map((row) => ({
@@ -396,16 +412,33 @@ apiRouter.get('/net-worth', async (req, res) => {
         { date: account.starting_balance_date!, balanceCents: account.starting_balance_cents },
         explicitCheckpoints,
       );
-      return projectBalance({ checkpoints, items, from: effectiveFrom, to });
+      return { currency: account.currency, accountId: account.id, series: projectBalance({ checkpoints, items, from: effectiveFrom, to }) };
     }),
   );
 
   res.json({
-    includedAccountIds: included.map((account) => account.id),
+    groups: groupByCurrency(withSeries).map((entries) => ({
+      currency: entries[0].currency,
+      includedAccountIds: entries.map((entry) => entry.accountId),
+      days: sumProjections(entries.map((entry) => entry.series)),
+    })),
     excludedAccountIds,
-    days: sumProjections(seriesList),
   });
 });
+
+/** Buckets items sharing a `currency` field together, in first-seen order. */
+function groupByCurrency<T extends { currency: string }>(items: T[]): T[][] {
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const group = groups.get(item.currency);
+    if (group) {
+      group.push(item);
+    } else {
+      groups.set(item.currency, [item]);
+    }
+  }
+  return [...groups.values()];
+}
 
 apiRouter.post('/wipe', async (_req, res) => {
   // The backup is taken first and its failure aborts the wipe: the point of

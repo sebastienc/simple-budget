@@ -2,6 +2,7 @@ import { getDb } from './index';
 
 export interface UpdateAccountInput {
   name?: string;
+  currency?: string;
   startingBalanceCents?: number;
   startingBalanceDate?: string | null;
 }
@@ -9,13 +10,14 @@ export interface UpdateAccountInput {
 export const accountsQueries = {
   list: () => getDb().selectFrom('accounts').selectAll().orderBy('id').execute(),
   get: (id: number) => getDb().selectFrom('accounts').selectAll().where('id', '=', id).executeTakeFirst(),
-  create: (input: { name: string }) =>
-    getDb().insertInto('accounts').values({ name: input.name }).returningAll().executeTakeFirstOrThrow(),
+  create: (input: { name: string; currency: string }) =>
+    getDb().insertInto('accounts').values({ name: input.name, currency: input.currency }).returningAll().executeTakeFirstOrThrow(),
   update: (id: number, input: UpdateAccountInput) =>
     getDb()
       .updateTable('accounts')
       .set({
         ...(input.name !== undefined && { name: input.name }),
+        ...(input.currency !== undefined && { currency: input.currency }),
         ...(input.startingBalanceCents !== undefined && { starting_balance_cents: input.startingBalanceCents }),
         ...(input.startingBalanceDate !== undefined && { starting_balance_date: input.startingBalanceDate }),
       })

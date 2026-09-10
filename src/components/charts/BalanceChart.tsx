@@ -16,6 +16,7 @@ export interface BalanceMarker {
 
 export interface BalanceChartProps {
   points: BalancePoint[];
+  currency: string;
   /**
    * Dates carrying a recorded balance correction. Only those falling inside the
    * plotted window are drawn — corrections are in the past, so nothing shows
@@ -111,7 +112,7 @@ function markerLabel(marker: BalanceMarker): string {
   return `${marker.date} · ${direction}${(marker.driftCents / 100).toFixed(2)}`;
 }
 
-const BalanceChart: React.FC<BalanceChartProps> = ({ points, markers, ariaLabel, className }) => {
+const BalanceChart: React.FC<BalanceChartProps> = ({ points, currency, markers, ariaLabel, className }) => {
   const model = useMemo(() => {
     if (points.length === 0) {
       return null;
@@ -172,7 +173,7 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ points, markers, ariaLabel,
           <g key={tick}>
             <line x1={PAD_L} y1={yAt(tick)} x2={W - PAD_R} y2={yAt(tick)} stroke="var(--rule)" strokeWidth={1} strokeDasharray={tick === 0 ? '3 3' : undefined} />
             <text x={PAD_L - 10} y={yAt(tick) + 4} textAnchor="end" fill="var(--ink-3)" className="font-mono" fontSize={10}>
-              {formatCentsAxis(tick)}
+              {formatCentsAxis(tick, currency)}
             </text>
           </g>
         ))}
