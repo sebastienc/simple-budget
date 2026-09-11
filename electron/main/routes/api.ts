@@ -27,18 +27,18 @@ export const apiRouter = Router();
 const FREQUENCIES: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'semimonthly'];
 const CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP'];
 
-function isValidDateString(value: unknown): value is string {
+export function isValidDateString(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return false;
   }
   return !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
 }
 
-function isValidDayOfMonth(value: unknown): value is number {
+export function isValidDayOfMonth(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 31;
 }
 
-function parseId(raw: string): number | null {
+export function parseId(raw: string): number | null {
   const id = Number(raw);
   return Number.isInteger(id) ? id : null;
 }
@@ -60,7 +60,7 @@ interface ValidatedRecurringItemFields {
  * create endpoint and the what-if preview endpoint — a scratch item is
  * validated exactly like a real one, it's just never written to the DB.
  */
-function validateRecurringItemFields(body: unknown): { error: string } | { value: ValidatedRecurringItemFields } {
+export function validateRecurringItemFields(body: unknown): { error: string } | { value: ValidatedRecurringItemFields } {
   const { name, amountCents, frequency, interval, startDate, endDate, semiMonthlyDay1, semiMonthlyDay2, sinkingFund } =
     (body as Record<string, unknown>) ?? {};
 
@@ -104,7 +104,7 @@ function validateRecurringItemFields(body: unknown): { error: string } | { value
   };
 }
 
-function withSinkingFundContribution(row: Selectable<RecurringItemsTable>, todayIso: string) {
+export function withSinkingFundContribution(row: Selectable<RecurringItemsTable>, todayIso: string) {
   const json = toRecurringItemJson(row);
   const contribution = json.sinkingFund
     ? computeSinkingFundContribution(toRecurringItemInput(row), todayIso)
@@ -513,7 +513,7 @@ apiRouter.get('/net-worth', async (req, res) => {
 });
 
 /** Buckets items sharing a `currency` field together, in first-seen order. */
-function groupByCurrency<T extends { currency: string }>(items: T[]): T[][] {
+export function groupByCurrency<T extends { currency: string }>(items: T[]): T[][] {
   const groups = new Map<string, T[]>();
   for (const item of items) {
     const group = groups.get(item.currency);
@@ -672,7 +672,7 @@ const SQLITE_HEADER = 'SQLite format 3\0';
  * talked into swallowing an unrelated SQLite file — someone else's database
  * would migrate cleanly and leave the app pointing at empty accounts.
  */
-function looksLikeBudgetDatabase(path: string): boolean {
+export function looksLikeBudgetDatabase(path: string): boolean {
   try {
     const check = new SqliteDatabase(path, { readonly: true });
     const tables = check
