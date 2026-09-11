@@ -24,7 +24,7 @@ type SortBy = 'name' | 'amount' | 'frequency';
 
 const SORT_OPTIONS: SortBy[] = ['name', 'amount', 'frequency'];
 
-function sortItems(items: RecurringItem[], sortBy: SortBy): RecurringItem[] {
+export function sortItems(items: RecurringItem[], sortBy: SortBy): RecurringItem[] {
   const sorted = [...items];
   switch (sortBy) {
     case 'name':
@@ -36,7 +36,7 @@ function sortItems(items: RecurringItem[], sortBy: SortBy): RecurringItem[] {
   }
 }
 
-function capitalize(value: string): string {
+export function capitalize(value: string): string {
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
