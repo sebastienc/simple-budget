@@ -37,7 +37,7 @@ export async function isWritableDirectory(path: string): Promise<boolean> {
   }
 }
 
-function describeCloudStorageEntry(entry: string): DetectedFolder | null {
+export function describeCloudStorageEntry(entry: string): DetectedFolder | null {
   const [provider, account] = [entry.split('-')[0], entry.slice(entry.indexOf('-') + 1)];
   const named = (label: string) => (account && account !== entry ? `${label} (${account})` : label);
 
@@ -81,7 +81,7 @@ async function macCandidates(): Promise<DetectedFolder[]> {
   return candidates;
 }
 
-function windowsCandidates(): DetectedFolder[] {
+export function windowsCandidates(): DetectedFolder[] {
   const candidates: DetectedFolder[] = [];
 
   // OneDrive sets this itself, pointed at the actual synced folder — more
@@ -101,7 +101,7 @@ function windowsCandidates(): DetectedFolder[] {
   return candidates;
 }
 
-function linuxCandidates(): DetectedFolder[] {
+export function linuxCandidates(): DetectedFolder[] {
   return [
     { path: join(homedir(), 'Dropbox'), label: 'Dropbox', provider: 'dropbox' },
     // Insync (the most common unofficial Google Drive/OneDrive client on

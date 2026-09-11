@@ -15,7 +15,7 @@ export const LOCAL_SERVER_PORT = 5680;
  * sees is the Vite dev origin, not 127.0.0.1 — `ELECTRON_RENDERER_URL` is
  * exactly that origin, and is already how the rest of this file detects dev.
  */
-function allowedOrigins(): string[] {
+export function allowedOrigins(): string[] {
   const origins = [`http://127.0.0.1:${LOCAL_SERVER_PORT}`];
   if (process.env.ELECTRON_RENDERER_URL) {
     origins.push(new URL(process.env.ELECTRON_RENDERER_URL).origin);
