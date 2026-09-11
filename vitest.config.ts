@@ -12,7 +12,24 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'node',
-    include: ['{src,electron}/**/*.test.ts'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'node',
+          environment: 'node',
+          include: ['{src,electron}/**/*.test.ts'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'jsdom',
+          environment: 'jsdom',
+          include: ['src/**/*.test.tsx'],
+          setupFiles: ['./test/setup.ts'],
+        },
+      },
+    ],
   },
 });
