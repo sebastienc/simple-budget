@@ -8,7 +8,7 @@ export interface ErrorBoundaryProps {
 }
 
 /** Routing errors arrive as anything at all, so coerce to something renderable. */
-function describe(error: unknown): string | null {
+export function describe(error: unknown): string | null {
   if (error instanceof Error) {
     return error.message;
   }

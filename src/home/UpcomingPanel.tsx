@@ -30,7 +30,7 @@ const rowRule = 'border-b border-rule';
  * recognising (the 15th is *payday*, not "pay and a loan payment") and the
  * count makes the grouping explicit, and hints there's something to open.
  */
-function dayLabel(event: ProjectionEvent, t: TFunction): string {
+export function dayLabel(event: ProjectionEvent, t: TFunction): string {
   if (event.items.length === 1) {
     return event.items[0].name;
   }

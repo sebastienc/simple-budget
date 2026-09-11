@@ -56,7 +56,7 @@ interface Run {
 }
 
 /** A 1/2/2.5/5/10 × 10ⁿ step, so ticks land on numbers a person would choose. */
-function niceStep(range: number, targetTicks: number): number {
+export function niceStep(range: number, targetTicks: number): number {
   if (range <= 0) {
     return 1;
   }
@@ -74,7 +74,7 @@ function niceStep(range: number, targetTicks: number): number {
  * contributes a horizontal run at the previous value followed by a vertical
  * jump to its own. Drawing it as a slope would imply money trickling in.
  */
-function buildVertices(points: BalancePoint[], xAt: (index: number) => number): Vertex[] {
+export function buildVertices(points: BalancePoint[], xAt: (index: number) => number): Vertex[] {
   const vertices: Vertex[] = [{ x: xAt(0), v: points[0].valueCents }];
   for (let i = 1; i < points.length; i++) {
     vertices.push({ x: xAt(i), v: points[i - 1].valueCents });
@@ -91,7 +91,7 @@ function buildVertices(points: BalancePoint[], xAt: (index: number) => number): 
  * (that segment's x, 0). No interpolation, and the colour changes on precisely
  * the day the account goes under.
  */
-function splitBySign(vertices: Vertex[]): Run[] {
+export function splitBySign(vertices: Vertex[]): Run[] {
   const runs: Run[] = [];
   let current: Run = { negative: vertices[0].v < 0, vertices: [vertices[0]] };
 

@@ -25,7 +25,7 @@ const DAY_FORMAT = 'd MMM';
  * run's balance is necessarily constant (no items means no change), so folding
  * it into one row loses nothing.
  */
-function toLedgerRows(days: ProjectionDay[]): LedgerRow[] {
+export function toLedgerRows(days: ProjectionDay[]): LedgerRow[] {
   const rows: LedgerRow[] = [];
   let run: ProjectionDay[] = [];
 
