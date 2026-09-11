@@ -12,6 +12,11 @@ export default defineConfig({
     },
   },
   test: {
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}', 'electron/**/*.ts'],
+      exclude: ['**/*.test.{ts,tsx}', 'src/vite-env.d.ts', 'src/testing-library.d.ts', 'src/i18n/**'],
+    },
     projects: [
       {
         extends: true,

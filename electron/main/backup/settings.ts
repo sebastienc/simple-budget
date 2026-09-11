@@ -26,7 +26,7 @@ function settingsPath(): string {
   return join(dirname(dbPath()), 'backup-settings.json');
 }
 
-function coerce(raw: unknown): BackupSettings {
+export function coerce(raw: unknown): BackupSettings {
   if (typeof raw !== 'object' || raw === null) {
     return DEFAULT_SETTINGS;
   }
