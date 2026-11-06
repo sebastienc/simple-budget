@@ -12,3 +12,6 @@ node_modules
 # Custom assets
 public/**
 .github/**
+
+# Generated golden vectors (npm run golden)
+test/golden/projection.json
