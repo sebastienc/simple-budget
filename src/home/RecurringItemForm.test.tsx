@@ -100,4 +100,40 @@ describe('RecurringItemForm', () => {
     expect(screen.getByLabelText('Name')).toHaveValue('Internet');
     expect(screen.getByLabelText('Amount')).toHaveValue(-80);
   });
+
+  it('refuses an end date before the start date, says why, and clears the message once a date changes', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<RecurringItemForm onSubmit={onSubmit} onCancel={vi.fn()} />);
+
+    await fillMinimum(user);
+    await user.clear(screen.getByLabelText('Start date'));
+    await user.type(screen.getByLabelText('Start date'), '2026-03-15');
+    await user.type(screen.getByLabelText('End date (optional)'), '2026-03-01');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent("The end date can't be before the start date");
+
+    await user.clear(screen.getByLabelText('End date (optional)'));
+    await user.type(screen.getByLabelText('End date (optional)'), '2026-04-01');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ startDate: '2026-03-15', endDate: '2026-04-01' }));
+  });
+
+  it('accepts an end date on the start date', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<RecurringItemForm onSubmit={onSubmit} onCancel={vi.fn()} />);
+
+    await fillMinimum(user);
+    await user.clear(screen.getByLabelText('Start date'));
+    await user.type(screen.getByLabelText('Start date'), '2026-03-15');
+    await user.type(screen.getByLabelText('End date (optional)'), '2026-03-15');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
 });
