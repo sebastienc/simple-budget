@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/sebastienc/simple-budget/compare/v1.2.1...v1.2.2) (2026-11-07)
+
+
+### Fixes
+
+* refuse a recurring item that ends before it starts ([f0d2b89](https://github.com/sebastienc/simple-budget/commit/f0d2b89a24c86f34f58099817e6e9289653d2dfe))
+* say so in the item form when the end date is before the start date ([d693312](https://github.com/sebastienc/simple-budget/commit/d6933121e8446ba4e839c11d04e62caf6f3a1c7b))
+
 ## [1.2.1](https://github.com/sebastienc/simple-budget/compare/v1.2.0...v1.2.1) (2026-09-10)
 
 
