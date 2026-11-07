@@ -43,6 +43,17 @@ export function parseId(raw: string): number | null {
   return Number.isInteger(id) ? id : null;
 }
 
+export const END_BEFORE_START_ERROR = 'endDate must not be before startDate';
+
+/**
+ * An item that ends before it starts is saved and then never occurs, with no hint why, so it is refused instead. A
+ * one-day item (the one-time payment) ends the day it starts, which is fine. Both are ISO dates, which order the same
+ * as text.
+ */
+export function endsBeforeStart(startDate: string, endDate: string | null | undefined): boolean {
+  return typeof endDate === 'string' && endDate < startDate;
+}
+
 interface ValidatedRecurringItemFields {
   name: string;
   amountCents: number;
@@ -81,6 +92,9 @@ export function validateRecurringItemFields(body: unknown): { error: string } | 
   }
   if (endDate !== undefined && endDate !== null && !isValidDateString(endDate)) {
     return { error: 'endDate must be YYYY-MM-DD' };
+  }
+  if (endsBeforeStart(startDate as string, endDate as string | null | undefined)) {
+    return { error: END_BEFORE_START_ERROR };
   }
   if (frequency === 'semimonthly' && (!isValidDayOfMonth(semiMonthlyDay1) || !isValidDayOfMonth(semiMonthlyDay2))) {
     return { error: 'semiMonthlyDay1 and semiMonthlyDay2 are required (1-31) for semimonthly frequency' };
@@ -238,6 +252,16 @@ apiRouter.patch('/recurring-items/:id', async (req, res) => {
   if (endDate !== undefined && endDate !== null && !isValidDateString(endDate)) {
     res.status(400).json({ error: 'endDate must be YYYY-MM-DD' });
     return;
+  }
+  // A partial update: the dates that aren't being changed come from the stored item. Only when a date is being changed
+  // is the pair checked, so an item that already ends before it starts can still be renamed or re-priced.
+  if (startDate !== undefined || endDate !== undefined) {
+    const effectiveStart = startDate !== undefined ? startDate : item.start_date;
+    const effectiveEnd = endDate !== undefined ? endDate : item.end_date;
+    if (endsBeforeStart(effectiveStart, effectiveEnd)) {
+      res.status(400).json({ error: END_BEFORE_START_ERROR });
+      return;
+    }
   }
   if (semiMonthlyDay1 !== undefined && semiMonthlyDay1 !== null && !isValidDayOfMonth(semiMonthlyDay1)) {
     res.status(400).json({ error: 'semiMonthlyDay1 must be an integer from 1 to 31' });
