@@ -6,6 +6,7 @@ import request from 'supertest';
 import type { Selectable } from 'kysely';
 import type { RecurringItemsTable } from '../db/schema';
 import { withTestApp } from '../../../test/dbFixture';
+import { getDb } from '../db';
 import {
   groupByCurrency,
   isValidDateString,
@@ -122,6 +123,21 @@ describe('validateRecurringItemFields', () => {
     const result = validateRecurringItemFields({ ...valid, frequency: 'semimonthly', semiMonthlyDay1: 1, semiMonthlyDay2: 15 });
     expect('value' in result && result.value.semiMonthlyDay1).toBe(1);
   });
+
+  it('rejects an end date before the start date', () => {
+    expect(validateRecurringItemFields({ ...valid, endDate: '2025-12-31' })).toEqual({
+      error: 'endDate must not be before startDate',
+    });
+  });
+
+  it('accepts an end date on the start date (a one-time payment) or after it', () => {
+    expect(validateRecurringItemFields({ ...valid, endDate: '2026-01-01' })).toHaveProperty('value');
+    expect(validateRecurringItemFields({ ...valid, endDate: '2026-12-31' })).toHaveProperty('value');
+  });
+
+  it('treats a missing or null end date as open-ended', () => {
+    expect(validateRecurringItemFields({ ...valid, endDate: null })).toHaveProperty('value');
+  });
 });
 
 describe('withSinkingFundContribution', () => {
@@ -193,6 +209,56 @@ describe('routes', () => {
         .post(`/api/accounts/${account.body.id}/recurring-items`)
         .send({ name: '', amountCents: -100, frequency: 'monthly', interval: 1, startDate: '2026-01-01' });
       expect(res.status).toBe(400);
+    });
+  });
+
+  it('POST /accounts/:id/recurring-items rejects an end date before the start date and stores nothing', async () => {
+    await withTestApp(async (app) => {
+      const account = await request(app).post('/api/accounts').send({ name: 'Chequing', currency: 'CAD' });
+      const res = await request(app)
+        .post(`/api/accounts/${account.body.id}/recurring-items`)
+        .send({ name: 'Gym', amountCents: -100, frequency: 'monthly', interval: 1, startDate: '2026-03-01', endDate: '2026-02-01' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('endDate must not be before startDate');
+
+      const items = await request(app).get(`/api/accounts/${account.body.id}/recurring-items`);
+      expect(items.body).toEqual([]);
+    });
+  });
+
+  it('PATCH /recurring-items/:id checks the end date against the stored start date, and the reverse', async () => {
+    await withTestApp(async (app) => {
+      const account = await request(app).post('/api/accounts').send({ name: 'Chequing', currency: 'CAD' });
+      const created = await request(app)
+        .post(`/api/accounts/${account.body.id}/recurring-items`)
+        .send({ name: 'Gym', amountCents: -100, frequency: 'monthly', interval: 1, startDate: '2026-03-01', endDate: '2026-09-01' });
+      const url = `/api/recurring-items/${created.body.id}`;
+
+      // Only the end date is sent: it is compared with the stored start date.
+      expect((await request(app).patch(url).send({ endDate: '2026-02-01' })).status).toBe(400);
+      // Only the start date is sent: it is compared with the stored end date.
+      expect((await request(app).patch(url).send({ startDate: '2026-10-01' })).status).toBe(400);
+      // Moving both together is judged as a pair.
+      expect((await request(app).patch(url).send({ startDate: '2026-10-01', endDate: '2026-12-01' })).status).toBe(200);
+      // Clearing the end date is always fine.
+      const cleared = await request(app).patch(url).send({ endDate: null });
+      expect(cleared.status).toBe(200);
+      expect(cleared.body.endDate).toBeNull();
+    });
+  });
+
+  it('PATCH /recurring-items/:id still lets an item that already ends before it starts be renamed', async () => {
+    await withTestApp(async (app) => {
+      const account = await request(app).post('/api/accounts').send({ name: 'Chequing', currency: 'CAD' });
+      const created = await request(app)
+        .post(`/api/accounts/${account.body.id}/recurring-items`)
+        .send({ name: 'Gym', amountCents: -100, frequency: 'monthly', interval: 1, startDate: '2026-03-01', endDate: '2026-09-01' });
+      // Simulate data from before the rule: the database holds a start after the end.
+      await getDb().updateTable('recurring_items').set({ start_date: '2026-12-01' }).where('id', '=', created.body.id).execute();
+
+      const renamed = await request(app).patch(`/api/recurring-items/${created.body.id}`).send({ name: 'Gym membership' });
+      expect(renamed.status).toBe(200);
+      expect(renamed.body.name).toBe('Gym membership');
     });
   });
 
