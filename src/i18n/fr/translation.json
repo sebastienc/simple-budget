@@ -18,6 +18,7 @@
   "Every": "Tous les",
   "StartDate": "Date de début",
   "EndDate": "Date de fin (optionnel)",
+  "EndDateBeforeStart": "La date de fin ne peut pas précéder la date de début",
   "FrequencyDaily": "Quotidien",
   "FrequencyWeekly": "Hebdomadaire",
   "FrequencyMonthly": "Mensuel",

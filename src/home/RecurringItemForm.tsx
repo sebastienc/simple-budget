@@ -30,6 +30,7 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
   const [semiMonthlyDay2, setSemiMonthlyDay2] = useState(String(initialValue?.semiMonthlyDay2 ?? 31));
   const [sinkingFund, setSinkingFund] = useState(initialValue?.sinkingFund ?? false);
   const [isOneTime, setIsOneTime] = useState(initialValue ? initialValue.endDate !== null && initialValue.endDate === initialValue.startDate : false);
+  const [endBeforeStart, setEndBeforeStart] = useState(false);
 
   const isSemiMonthly = frequency === 'semimonthly';
 
@@ -38,6 +39,11 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
       className="flex max-w-sm flex-col gap-4 border-b border-rule pb-6"
       onSubmit={async (event) => {
         event.preventDefault();
+        // Saved, such an item would simply never occur, with nothing to say why.
+        if (!isOneTime && endDate && endDate < startDate) {
+          setEndBeforeStart(true);
+          return;
+        }
         await onSubmit({
           name,
           amountCents: parseAmountToCents(amount),
@@ -89,8 +95,32 @@ const RecurringItemForm: React.FC<RecurringItemFormProps> = ({ initialValue, onS
         </>
       )}
 
-      <TextField label={t('StartDate')} type="date" value={startDate} onChange={setStartDate} isRequired />
-      {!isOneTime && <TextField label={t('EndDate')} type="date" value={endDate} onChange={setEndDate} />}
+      <TextField
+        label={t('StartDate')}
+        type="date"
+        value={startDate}
+        onChange={(value) => {
+          setStartDate(value);
+          setEndBeforeStart(false);
+        }}
+        isRequired
+      />
+      {!isOneTime && (
+        <TextField
+          label={t('EndDate')}
+          type="date"
+          value={endDate}
+          onChange={(value) => {
+            setEndDate(value);
+            setEndBeforeStart(false);
+          }}
+        />
+      )}
+      {!isOneTime && endBeforeStart && (
+        <p role="alert" className="text-xs text-danger">
+          {t('EndDateBeforeStart')}
+        </p>
+      )}
 
       <label className={checkboxRow}>
         <input type="checkbox" checked={sinkingFund} onChange={(event) => setSinkingFund(event.target.checked)} className="accent-accent" />
