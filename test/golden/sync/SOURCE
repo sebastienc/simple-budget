@@ -1,10 +1,10 @@
 repository: sebastienc/simple-budget-mobile
 ref: origin/main
-commit: ac6218baf807321a4f0afbaae74a4d946e6b6444
+commit: c28ab67e297a40490c44eb9faae62584a542cdd0
 refresh: scripts/sync-golden-from-mobile.sh
 file: app/src/test/resources/golden/sync-merge.json
 sha256 sync-merge.json: 231337b5c14499230669b9cd9ed8394c047e2715f9d1baa85d44b954148a01fc
 file: app/src/test/resources/golden/sync-plan.json
 sha256 sync-plan.json: cecda42121a2061c77aa328d007ed6834c295e9f9ab7bebff41cb10c35a24eeb
 file: app/src/test/resources/golden/sync-file.json
-sha256 sync-file.json: 3898a3025337964177fc130c760d4e9d4ea89b613f0e5de5fd50d31e7491620e
+sha256 sync-file.json: 33d4f40a485e4c22781eb3b4cb3fc407724b2d5a9a1315320c96c152453b7894

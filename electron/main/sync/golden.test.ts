@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { decodeSyncFile } from './file.ts';
+import { decodeSyncFile, encodeSyncFile } from './file.ts';
 import { merge, nextStamp } from './merge.ts';
 import { planSync } from './plan.ts';
 import type { DeviceState, MergedState, ReadResult, RemoteFile, SkipReason, SyncHeader, SyncRow, Tombstone } from './model.ts';
@@ -129,4 +129,17 @@ describe('sync-file.json', () => {
       }
     });
   }
+
+  it("writes exactly the bytes of the files each app's own encoder wrote, for the budget they describe", () => {
+    // The golden file holds one file written by the phone's encoder and one by this one, for the same budget. Reading either
+    // and writing it again here must give the same bytes: the two encoders agree, byte for byte, on escaping, non-ASCII text,
+    // control characters and the order of keys. (The phone's tests make the same check on its side.)
+    const written = (golden.cases as (GoldenCase & { encoder?: string })[]).filter((c) => c.encoder !== undefined);
+    expect(written.map((c) => c.encoder).sort()).toEqual(['desktop', 'mobile']);
+    for (const c of written) {
+      const result = decodeSyncFile(new TextEncoder().encode(c.file), golden.now);
+      if (result.kind !== 'read') throw new Error(`${c.encoder}: ${result.reason}`);
+      expect(new TextDecoder().decode(encodeSyncFile(result.file)), c.encoder).toBe(c.file);
+    }
+  });
 });
