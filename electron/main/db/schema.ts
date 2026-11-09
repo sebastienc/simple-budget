@@ -6,7 +6,7 @@ export interface AccountsTable {
   currency: ColumnType<string, string | undefined, string>;
   starting_balance_cents: ColumnType<number, number | undefined, number>;
   starting_balance_date: string | null;
-  created_at: ColumnType<string, string | undefined, never>;
+  created_at: ColumnType<string, string | undefined, string>;
   /** Identity across devices (sync). Set once, when the row is created. */
   uuid: ColumnType<string, string, never>;
   /** When the row last changed, an ISO-8601 UTC instant (sync). Set on every insert and update. */
@@ -25,7 +25,7 @@ export interface RecurringItemsTable {
   semi_monthly_day1: number | null;
   semi_monthly_day2: number | null;
   sinking_fund: ColumnType<number, number | undefined, number>;
-  created_at: ColumnType<string, string | undefined, never>;
+  created_at: ColumnType<string, string | undefined, string>;
   /** Identity across devices (sync). Set once, when the row is created. */
   uuid: ColumnType<string, string, never>;
   /** When the row last changed, an ISO-8601 UTC instant (sync). Set on every insert and update. */
@@ -37,7 +37,7 @@ export interface BalanceCheckpointsTable {
   account_id: number;
   date: string;
   balance_cents: number;
-  created_at: ColumnType<string, string | undefined, never>;
+  created_at: ColumnType<string, string | undefined, string>;
   /** Identity across devices (sync). Set once, when the row is created. */
   uuid: ColumnType<string, string, never>;
   /** When the row last changed, an ISO-8601 UTC instant (sync). Set on every insert and update. */
