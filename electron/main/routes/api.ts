@@ -21,8 +21,23 @@ import { readBackupSettings, writeBackupSettings } from '../backup/settings';
 import { detectSyncedFolders, isWritableDirectory } from '../backup/folders';
 import { listSnapshots, resolveSnapshotPath } from '../backup/snapshots';
 import { snapshotNow } from '../backup/schedule';
+import { notifyBudgetChanged } from '../syncing/changes';
 
 export const apiRouter = Router();
+
+/**
+ * Whatever changes the budget through the app is something sync should publish soon. Setting the backup folder or
+ * taking a snapshot changes nothing in the budget, so those do not count.
+ */
+const NOT_BUDGET_CHANGES = ['/backup/folder', '/backup/snapshot', '/sync'];
+apiRouter.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD' && !NOT_BUDGET_CHANGES.some((prefix) => req.path.startsWith(prefix))) {
+    res.on('finish', () => {
+      if (res.statusCode < 400) notifyBudgetChanged();
+    });
+  }
+  next();
+});
 
 const FREQUENCIES: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'semimonthly'];
 const CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP'];
