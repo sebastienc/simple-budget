@@ -33,7 +33,11 @@ export interface SyncStatus {
 }
 
 export interface CoordinatorDeps {
-  engine: { sync(): Promise<SyncOutcome>; resolveFirstLink(offer: FirstLinkOffer, winner: Winner): Promise<SyncOutcome> };
+  engine: {
+    sync(): Promise<SyncOutcome>;
+    resolveFirstLink(offer: FirstLinkOffer, winner: Winner): Promise<SyncOutcome>;
+    exclusively<T>(task: () => Promise<T>): Promise<T>;
+  };
   settings: { read(): Promise<SyncSettings>; update(change: (current: SyncSettings) => Partial<SyncSettings>): Promise<SyncSettings> };
   /** The folder sync would use (the backup folder), or null if none is chosen. */
   folderPath: () => Promise<string | null>;
@@ -91,6 +95,11 @@ export class SyncCoordinator {
   async status(): Promise<SyncStatus> {
     const [settings, folder] = await Promise.all([this.deps.settings.read(), this.deps.folderPath()]);
     return { enabled: settings.enabled, folder, running: this.running > 0, ...this.shown, lastRead: settings.lastRead, lastWrite: settings.lastWrite };
+  }
+
+  /** Runs `task` while no sync is running and none starts. */
+  whileSyncIsIdle<T>(task: () => Promise<T>): Promise<T> {
+    return this.deps.engine.exclusively(task);
   }
 
   /** The first link the person is being offered for `deviceId`, as of the last sync, if there is one. */

@@ -266,12 +266,12 @@ describe('the write paths', () => {
       return /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
     });
 
-  it("are only in db/queries.ts (the app's own edits), db/stamps.ts (tombstones) and db/syncStore.ts (applying a merge)", () => {
+  it("are only in db/queries.ts (the app's own edits), db/stamps.ts (tombstones), db/syncStore.ts (applying a merge) and db/syncReplace.ts (a restore or import with sync on)", () => {
     const writers = sourceFiles(root)
       .filter((file) => /\.(insertInto|updateTable|deleteFrom)\(|sqlite\.(exec|prepare)\(/.test(readFileSync(file, 'utf8')))
       .map((file) => relative(root, file))
       .sort();
-    expect(writers).toEqual(['db/queries.ts', 'db/stamps.ts', 'db/syncStore.ts']);
+    expect(writers).toEqual(['db/queries.ts', 'db/stamps.ts', 'db/syncReplace.ts', 'db/syncStore.ts']);
   });
 
   it('are exactly the ones these tests drive: a new one must be added here, with its stamp and tombstone checks', () => {
