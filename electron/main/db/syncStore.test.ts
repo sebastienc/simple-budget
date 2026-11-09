@@ -7,52 +7,11 @@ import { setClockForTests } from './stamps';
 import { anyChange, syncStore } from './syncStore';
 import { merge } from '../sync/merge';
 import type { DeviceState, SyncRow, Tombstone } from '../sync/model';
+import { CREATED, T0, account, correction, item, remote, tomb } from '../../../test/syncRows';
 import { addSeconds } from '../sync/stamp';
 
 afterEach(() => setClockForTests(null));
 const at = (iso: string) => setClockForTests(() => new Date(iso));
-
-const T0 = '2026-11-01T10:00:00Z';
-const CREATED = '2026-11-01 09:00:00';
-
-const account = (uuid: string, updatedAt = T0, name = 'Chequing', extra: Partial<SyncRow['fields']> = {}): SyncRow => ({
-  table: 'accounts',
-  uuid,
-  updatedAt,
-  parentUuid: null,
-  key: null,
-  fields: { name, currency: 'CAD', startingBalanceCents: 1000, startingBalanceDate: '2026-11-01', createdAt: CREATED, ...extra },
-});
-const item = (uuid: string, parentUuid: string, updatedAt = T0, name = 'Rent', extra: Partial<SyncRow['fields']> = {}): SyncRow => ({
-  table: 'recurring_items',
-  uuid,
-  updatedAt,
-  parentUuid,
-  key: null,
-  fields: {
-    name,
-    amountCents: -1500,
-    frequency: 'monthly',
-    interval: 1,
-    startDate: '2026-11-01',
-    endDate: null,
-    semiMonthlyDay1: null,
-    semiMonthlyDay2: null,
-    sinkingFund: false,
-    createdAt: CREATED,
-    ...extra,
-  },
-});
-const correction = (uuid: string, parentUuid: string, date: string, updatedAt = T0, balanceCents = 500): SyncRow => ({
-  table: 'balance_checkpoints',
-  uuid,
-  updatedAt,
-  parentUuid,
-  key: date,
-  fields: { date, balanceCents, createdAt: CREATED },
-});
-const tomb = (table: Tombstone['table'], uuid: string, deletedAt: string): Tombstone => ({ table, uuid, deletedAt });
-const remote = (deviceId: string, rows: SyncRow[], tombstones: Tombstone[] = []): DeviceState => ({ deviceId, rows, tombstones });
 
 const dump = async () => ({
   accounts: await getDb().selectFrom('accounts').selectAll().orderBy('uuid').execute(),
