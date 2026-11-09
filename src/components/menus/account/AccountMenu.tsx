@@ -51,7 +51,8 @@ const AccountMenu = () => {
     if (!file) {
       return;
     }
-    if (!window.confirm(t('ImportBackupConfirm'))) {
+    // With sync on, the other devices follow an import: say so before asking.
+    if (!window.confirm(t((await fetchSyncEnabled()) ? 'ImportBackupConfirmSync' : 'ImportBackupConfirm'))) {
       return;
     }
     const result = await importBackup(file);

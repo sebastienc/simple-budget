@@ -198,5 +198,7 @@
   "SyncFirstLinkKeepThis": "Garder les données de cet ordinateur",
   "SyncFirstLinkSafety": "Une copie des données de cet ordinateur est d'abord enregistrée, dans le dossier « backups » à côté de la base de données.",
   "SyncFirstLinkLater": "Décider plus tard",
-  "WipeConfirmSync": "Ceci supprime définitivement tous les comptes, éléments récurrents et corrections de solde.\n\nLa synchronisation est activée : vos autres appareils effaceront aussi leurs données à leur prochaine synchronisation.\n\nUne sauvegarde est créée automatiquement d'abord sur cet ordinateur, donc rien n'est perdu ici — mais l'application sera vide.\n\nContinuer?"
+  "WipeConfirmSync": "Ceci supprime définitivement tous les comptes, éléments récurrents et corrections de solde.\n\nLa synchronisation est activée : vos autres appareils effaceront aussi leurs données à leur prochaine synchronisation.\n\nUne sauvegarde est créée automatiquement d'abord sur cet ordinateur, donc rien n'est perdu ici — mais l'application sera vide.\n\nContinuer?",
+  "ImportBackupConfirmSync": "Ceci remplacera toutes les données actuelles par le contenu du fichier de sauvegarde sélectionné.\n\nLa synchronisation est activée : vos autres appareils reprendront aussi ces données à leur prochaine synchronisation.\n\nUne sauvegarde des données actuelles est créée automatiquement avant. Continuer?",
+  "RestoreConfirmSync": "Ceci remplacera tout le contenu de l'application par la copie du {{when}} ({{host}}).\n\nLa synchronisation est activée : vos autres appareils reprendront aussi ces données à leur prochaine synchronisation.\n\nUne sauvegarde de la base actuelle est créée automatiquement avant, donc rien n'est perdu ici.\n\nContinuer?"
 }
