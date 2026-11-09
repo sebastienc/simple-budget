@@ -7,6 +7,7 @@ import TextField from '@/components/ui/TextField';
 import { formatInstant } from '@/lib/dates';
 import { useBackupFolder, type Snapshot } from '@/data/useBackupFolder';
 import { useToaster } from '@/toast/useToaster';
+import { fetchSyncEnabled } from '@/data/useSync';
 import SyncSection from './SyncSection';
 
 export interface BackupsDialogProps {
@@ -56,7 +57,10 @@ const BackupsDialog: React.FC<BackupsDialogProps> = ({ isOpen, onOpenChange }) =
 
   const handleRestore = async (snapshot: Snapshot) => {
     const when = formatInstant(snapshot.takenAt, 'd MMMM yyyy, HH:mm');
-    if (!window.confirm(t('RestoreConfirm', { when, host: snapshot.host }))) {
+    // A computer's name is whatever its owner called it, and this is plain text: React's escaping does not apply, so neither
+    // should i18next's. With sync on, the other devices follow a restore: say so before asking.
+    const key = (await fetchSyncEnabled()) ? 'RestoreConfirmSync' : 'RestoreConfirm';
+    if (!window.confirm(t(key, { when, host: snapshot.host, interpolation: { escapeValue: false } }))) {
       return;
     }
 

@@ -73,6 +73,29 @@ describe('BackupsDialog', () => {
     vi.unstubAllGlobals();
   });
 
+  it.each([
+    [true, 'your other devices will take this data too'],
+    [false, 'A backup of the current database is saved automatically first, so nothing is lost.'],
+  ])('with sync %s, the restore confirmation says what it should, with the computer\'s name as written', async (syncOn, wanted) => {
+    const user = userEvent.setup();
+    const snapshot = { name: 'a.db', path: '/backups/a.db', host: "Sebastien's Mac", takenAt: '2026-01-01T00:00:00.000Z', sizeBytes: 2048, isThisMachine: false };
+    const status = { enabled: syncOn, folder: '/backups', running: false, devices: [], problem: null, changesBroughtIn: null, lastRead: null, lastWrite: null };
+    const fetchMock = vi.fn(async (url: string) => jsonResponse(url === '/api/sync' ? status : { ...EMPTY_FOLDER, folder: '/backups', snapshots: [snapshot] }));
+    vi.stubGlobal('fetch', fetchMock);
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    renderWithToaster(<BackupsDialog isOpen onOpenChange={vi.fn()} />);
+    await user.click(await screen.findByRole('button', { name: 'Restore' }));
+
+    await waitFor(() => expect(confirm).toHaveBeenCalled());
+    expect(confirm.mock.calls[0][0]).toContain(wanted);
+    expect(confirm.mock.calls[0][0]).toContain("(Sebastien's Mac)");
+    expect(fetchMock.mock.calls.some(([url]) => url === '/api/backup/restore')).toBe(false);
+
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it('shows the sync section, asking for a backup folder first when there is none', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(EMPTY_FOLDER)));
 

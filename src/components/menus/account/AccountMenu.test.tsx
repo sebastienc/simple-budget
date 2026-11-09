@@ -34,7 +34,10 @@ describe('AccountMenu', () => {
 
   it('says in the confirmation that the other devices will follow when sync is on', async () => {
     const user = userEvent.setup();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ enabled: true, folder: '/Drive', running: false, devices: [], problem: null, changesBroughtIn: null, lastRead: null, lastWrite: null })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(jsonResponse({ enabled: true, folder: '/Drive', running: false, devices: [], problem: null, changesBroughtIn: null, lastRead: null, lastWrite: null })),
+    );
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
 
     renderWithProviders(<AccountMenu />);
@@ -53,7 +56,10 @@ describe('AccountMenu', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
 
     for (const answer of [jsonResponse({ enabled: false, devices: [] }), jsonResponse({}, 500), undefined]) {
-      vi.stubGlobal('fetch', vi.fn().mockImplementation(() => (answer ? Promise.resolve(answer) : Promise.reject(new Error('offline')))));
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockImplementation(() => (answer ? Promise.resolve(answer) : Promise.reject(new Error('offline')))),
+      );
       const { unmount } = renderWithProviders(<AccountMenu />);
       await openMenu(user);
       await user.click(screen.getByRole('menuitem', { name: 'Erase all data' }));
@@ -120,6 +126,29 @@ describe('AccountMenu', () => {
     vi.unstubAllGlobals();
   });
 
+  it.each([
+    [true, 'ImportBackupConfirmSync', 'your other devices will take this data too'],
+    [false, 'ImportBackupConfirm', 'This will replace all current data'],
+  ])('with sync %s, the import confirmation is the one for it', async (syncOn, _key, wanted) => {
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ enabled: syncOn, devices: [] })));
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    const { container } = renderWithProviders(<AccountMenu />);
+    await openMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Import backup' }));
+    await user.upload(container.querySelector('input[type="file"]') as HTMLInputElement, new File(['SQLite format 3'], 'backup.db'));
+
+    await vi.waitFor(() => expect(confirm).toHaveBeenCalled());
+    expect(confirm.mock.calls[0][0]).toContain(wanted);
+    expect(String(confirm.mock.calls[0][0]).includes('other devices')).toBe(syncOn);
+    // declined: nothing was imported
+    expect(vi.mocked(fetch).mock.calls.some(([url]) => url === '/api/backup/import')).toBe(false);
+
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it('imports the selected file after confirming, then reloads', async () => {
     const user = userEvent.setup();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({}, 200)));
@@ -136,7 +165,7 @@ describe('AccountMenu', () => {
     await user.upload(fileInput, file);
 
     await vi.waitFor(() => expect(reloadSpy).toHaveBeenCalled());
-    const [url, init] = vi.mocked(fetch).mock.calls[0];
+    const [url, init] = vi.mocked(fetch).mock.calls.find(([called]) => called === '/api/backup/import')!;
     expect(url).toBe('/api/backup/import');
     expect(init?.body).toBe(file);
 

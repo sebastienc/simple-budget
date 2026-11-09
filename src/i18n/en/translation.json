@@ -198,5 +198,7 @@
   "SyncFirstLinkKeepThis": "Keep this computer's data",
   "SyncFirstLinkSafety": "A copy of this computer's data is saved first, in the \"backups\" folder next to the database.",
   "SyncFirstLinkLater": "Decide later",
-  "WipeConfirmSync": "This permanently deletes every account, recurring item and balance correction.\n\nSync is on, so your other devices will erase their data too, the next time they sync.\n\nA backup is saved automatically first on this computer, so nothing is lost here — but the app will be empty.\n\nContinue?"
+  "WipeConfirmSync": "This permanently deletes every account, recurring item and balance correction.\n\nSync is on, so your other devices will erase their data too, the next time they sync.\n\nA backup is saved automatically first on this computer, so nothing is lost here — but the app will be empty.\n\nContinue?",
+  "ImportBackupConfirmSync": "This will replace all current data with the contents of the selected backup file.\n\nSync is on, so your other devices will take this data too, the next time they sync.\n\nA backup of the current data is saved automatically first. Continue?",
+  "RestoreConfirmSync": "This replaces everything in the app with the snapshot from {{when}} ({{host}}).\n\nSync is on, so your other devices will take this data too, the next time they sync.\n\nA backup of the current database is saved automatically first, so nothing is lost here.\n\nContinue?"
 }
