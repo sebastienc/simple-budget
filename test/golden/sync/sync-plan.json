@@ -1,0 +1,1244 @@
+{
+  "formatVersion": 1,
+  "description": "Golden cases for choosing what to do with the other devices' files (ADR-0008 first link, ADR-0009 joining). Written by hand from the ADRs. The Kotlin app and the desktop app must both give exactly this for every case. Changing a case changes the contract between the apps: change both together.",
+  "cases": [
+    {
+      "name": "no other devices",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [],
+      "expected": {
+        "merge": [],
+        "statuses": []
+      }
+    },
+    {
+      "name": "a phone with nothing merges any file, with no question",
+      "local": {
+        "rows": [],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T11:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a phone holding only tombstones counts as holding nothing",
+      "local": {
+        "rows": [],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "old",
+            "deletedAt": "2026-11-01T10:00:00Z"
+          }
+        ]
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T11:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a file with a row uuid in common is merged",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "a1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              },
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T11:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a file that deleted a row this phone holds shares history",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T11:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": [
+              {
+                "table": "recurring_items",
+                "uuid": "i1",
+                "deletedAt": "2026-11-01T12:00:00Z"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a file holding a row this phone deleted shares history",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          }
+        ],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "gone",
+            "deletedAt": "2026-11-01T11:00:00Z"
+          }
+        ]
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "gone",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "back"
+                }
+              },
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T10:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "both have deleted the same row: shared history",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          }
+        ],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "gone",
+            "deletedAt": "2026-11-01T11:00:00Z"
+          }
+        ]
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T10:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": [
+              {
+                "table": "accounts",
+                "uuid": "gone",
+                "deletedAt": "2026-11-01T12:00:00Z"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "the same uuid in a different table is not shared history",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "u1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "recurring_items",
+                "uuid": "u1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": "b-acc",
+                "key": null,
+                "fields": {
+                  "name": "i"
+                }
+              },
+              {
+                "table": "accounts",
+                "uuid": "b-acc",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "offer",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z",
+            "suggested": "REMOTE",
+            "remote": {
+              "accounts": 1,
+              "items": 1,
+              "corrections": 0,
+              "lastChange": "2026-11-01T12:00:00Z"
+            },
+            "local": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T10:00:00Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "different budgets that never met: an offer, suggesting the side that changed more recently (the file)",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              },
+              {
+                "table": "balance_checkpoints",
+                "uuid": "c1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": "b1",
+                "key": "2026-11-05",
+                "fields": {
+                  "date": "2026-11-05"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "offer",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z",
+            "suggested": "REMOTE",
+            "remote": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 1,
+              "lastChange": "2026-11-01T12:00:00Z"
+            },
+            "local": {
+              "accounts": 1,
+              "items": 1,
+              "corrections": 0,
+              "lastChange": "2026-11-01T11:00:00Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "different budgets: suggesting this phone when it changed more recently",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T12:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T10:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "offer",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z",
+            "suggested": "LOCAL",
+            "remote": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T10:00:00Z"
+            },
+            "local": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T12:00:00Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "a tombstone counts as a change when finding the newest",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          }
+        ],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "x",
+            "deletedAt": "2026-11-01T12:00:00Z"
+          }
+        ]
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T11:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "offer",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z",
+            "suggested": "LOCAL",
+            "remote": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T11:00:00Z"
+            },
+            "local": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T12:00:00Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "a tie suggests this phone, so nothing is replaced by accident",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T11:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "offer",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z",
+            "suggested": "LOCAL",
+            "remote": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T11:00:00Z"
+            },
+            "local": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T11:00:00Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "a file that holds nothing is merged, since there is nothing to lose",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "having chosen to keep this phone's data leaves that device waiting, unmerged",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [
+        "B"
+      ],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "waiting",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a choice to keep this phone's data does not stop a merge once history is shared",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [
+        "B"
+      ],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "a1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a choice about one device does not apply to another",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [
+        "B"
+      ],
+      "remotes": [
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "b1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        },
+        {
+          "device": "C",
+          "name": "Phone C",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "c1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "waiting",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          },
+          {
+            "device": "C",
+            "status": "offer",
+            "name": "Phone C",
+            "writtenAt": "2026-11-09T11:59:00Z",
+            "suggested": "REMOTE",
+            "remote": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T12:00:00Z"
+            },
+            "local": {
+              "accounts": 1,
+              "items": 1,
+              "corrections": 0,
+              "lastChange": "2026-11-01T11:00:00Z"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "a file that was skipped is reported, and the rest carry on",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "B",
+          "skipped": "CHECKSUM"
+        },
+        {
+          "device": "C",
+          "name": "Phone C",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "a1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "C"
+        ],
+        "statuses": [
+          {
+            "device": "B",
+            "status": "skipped",
+            "reason": "CHECKSUM"
+          },
+          {
+            "device": "C",
+            "status": "merged",
+            "name": "Phone C",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "each device is judged on its own and listed by device id, whatever order the files came in",
+      "local": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "x"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "i"
+            }
+          }
+        ],
+        "tombstones": []
+      },
+      "decidedLocal": [],
+      "remotes": [
+        {
+          "device": "C",
+          "name": "Phone C",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "c1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        },
+        {
+          "device": "A",
+          "skipped": "NEWER_SCHEMA"
+        },
+        {
+          "device": "B",
+          "name": "Phone B",
+          "writtenAt": "2026-11-09T11:59:00Z",
+          "state": {
+            "rows": [
+              {
+                "table": "accounts",
+                "uuid": "a1",
+                "updatedAt": "2026-11-01T12:00:00Z",
+                "parentUuid": null,
+                "key": null,
+                "fields": {
+                  "name": "x"
+                }
+              }
+            ],
+            "tombstones": []
+          }
+        }
+      ],
+      "expected": {
+        "merge": [
+          "B"
+        ],
+        "statuses": [
+          {
+            "device": "A",
+            "status": "skipped",
+            "reason": "NEWER_SCHEMA"
+          },
+          {
+            "device": "B",
+            "status": "merged",
+            "name": "Phone B",
+            "writtenAt": "2026-11-09T11:59:00Z"
+          },
+          {
+            "device": "C",
+            "status": "offer",
+            "name": "Phone C",
+            "writtenAt": "2026-11-09T11:59:00Z",
+            "suggested": "REMOTE",
+            "remote": {
+              "accounts": 1,
+              "items": 0,
+              "corrections": 0,
+              "lastChange": "2026-11-01T12:00:00Z"
+            },
+            "local": {
+              "accounts": 1,
+              "items": 1,
+              "corrections": 0,
+              "lastChange": "2026-11-01T11:00:00Z"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

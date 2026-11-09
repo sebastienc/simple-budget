@@ -1,0 +1,1107 @@
+{
+  "formatVersion": 1,
+  "description": "Golden vectors for the sync merge (ADR-0008). Written by hand: the expected output is what the ADR says it must be, not what some implementation printed. The Kotlin app and the desktop app must both pass every case, with the states given in any order. Changing a case changes the contract between the two apps: change both together.",
+  "tables": [
+    "accounts",
+    "recurring_items",
+    "balance_checkpoints"
+  ],
+  "mergeCases": [
+    {
+      "name": "one device passes through unchanged, listed accounts first then items then corrections, by uuid",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "recurring_items",
+              "uuid": "i2",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": null,
+              "fields": {
+                "name": "Phone",
+                "amountCents": -1000
+              }
+            },
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Chequing"
+              }
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": null,
+              "fields": {
+                "name": "Rent",
+                "amountCents": -1000
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Chequing"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "Rent",
+              "amountCents": -1000
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i2",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "Phone",
+              "amountCents": -1000
+            }
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "two devices with different rows: the union",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Chequing"
+              }
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": null,
+              "fields": {
+                "name": "Rent",
+                "amountCents": -1000
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a2",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Savings"
+              }
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "i2",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a2",
+              "key": null,
+              "fields": {
+                "name": "Interest",
+                "amountCents": 500
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Chequing"
+            }
+          },
+          {
+            "table": "accounts",
+            "uuid": "a2",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Savings"
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a1",
+            "key": null,
+            "fields": {
+              "name": "Rent",
+              "amountCents": -1000
+            }
+          },
+          {
+            "table": "recurring_items",
+            "uuid": "i2",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a2",
+            "key": null,
+            "fields": {
+              "name": "Interest",
+              "amountCents": 500
+            }
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "the same row on both devices: the newer version wins",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Old"
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T11:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "New"
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "New"
+            }
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "the same row, identical on both devices, appears once",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Same"
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Same"
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Same"
+            }
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "the same stamp with different content: the version held by the higher device id wins",
+      "note": "Device ids compare as plain strings, character by character (not locale-aware).",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "from A"
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "from B"
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "from B"
+            }
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "a deletion newer than an edit wins and its tombstone is kept",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Chequing"
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "deletedAt": "2026-11-01T11:00:00Z"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "rows": [],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "deletedAt": "2026-11-01T11:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "an edit newer than a deletion wins and the old tombstone is dropped",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T11:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Edited"
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "deletedAt": "2026-11-01T10:00:00Z"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Edited"
+            }
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "a deletion and an edit at the same stamp: the deletion wins",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Chequing"
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "deletedAt": "2026-11-01T10:00:00Z"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "rows": [],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "deletedAt": "2026-11-01T10:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a tombstone for a row no device holds is kept",
+      "states": [
+        {
+          "device": "A",
+          "rows": [],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "a9",
+              "deletedAt": "2026-11-01T10:00:00Z"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "rows": [],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "a9",
+            "deletedAt": "2026-11-01T10:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "deleting an account drops its items and corrections, even ones edited after the deletion",
+      "note": "Nothing is recorded for the dropped rows: every device that learns the account is gone drops them itself, and a person deleting the account wrote the tombstones of its rows at that time.",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Chequing"
+              }
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "updatedAt": "2026-11-01T12:00:00Z",
+              "parentUuid": "a1",
+              "key": null,
+              "fields": {
+                "name": "Rent",
+                "amountCents": -1000
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c1",
+              "updatedAt": "2026-11-01T12:00:00Z",
+              "parentUuid": "a1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 100
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "deletedAt": "2026-11-01T11:00:00Z"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "rows": [],
+        "tombstones": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "deletedAt": "2026-11-01T11:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "an item whose account no device knows is dropped, with no tombstone",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a9",
+              "key": null,
+              "fields": {
+                "name": "Rent",
+                "amountCents": -1000
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "two corrections for the same account and day: the later one wins and the other is recorded as deleted, at its own stamp",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Chequing"
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 100
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c2",
+              "updatedAt": "2026-11-01T11:00:00Z",
+              "parentUuid": "a1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 200
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Chequing"
+            }
+          },
+          {
+            "table": "balance_checkpoints",
+            "uuid": "c2",
+            "updatedAt": "2026-11-01T11:00:00Z",
+            "parentUuid": "a1",
+            "key": "2026-11-05",
+            "fields": {
+              "date": "2026-11-05",
+              "balanceCents": 200
+            }
+          }
+        ],
+        "tombstones": [
+          {
+            "table": "balance_checkpoints",
+            "uuid": "c1",
+            "deletedAt": "2026-11-01T10:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "two corrections for the same account and day at the same stamp: the larger uuid wins",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Chequing"
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 100
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c2",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 200
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Chequing"
+            }
+          },
+          {
+            "table": "balance_checkpoints",
+            "uuid": "c2",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a1",
+            "key": "2026-11-05",
+            "fields": {
+              "date": "2026-11-05",
+              "balanceCents": 200
+            }
+          }
+        ],
+        "tombstones": [
+          {
+            "table": "balance_checkpoints",
+            "uuid": "c1",
+            "deletedAt": "2026-11-01T10:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "corrections on different days, or for different accounts, all stay",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "One"
+              }
+            },
+            {
+              "table": "accounts",
+              "uuid": "a2",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Two"
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 100
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c2",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": "2026-11-06",
+              "fields": {
+                "date": "2026-11-06",
+                "balanceCents": 110
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "c3",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a2",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 120
+              }
+            }
+          ],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "One"
+            }
+          },
+          {
+            "table": "accounts",
+            "uuid": "a2",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Two"
+            }
+          },
+          {
+            "table": "balance_checkpoints",
+            "uuid": "c1",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a1",
+            "key": "2026-11-05",
+            "fields": {
+              "date": "2026-11-05",
+              "balanceCents": 100
+            }
+          },
+          {
+            "table": "balance_checkpoints",
+            "uuid": "c2",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a1",
+            "key": "2026-11-06",
+            "fields": {
+              "date": "2026-11-06",
+              "balanceCents": 110
+            }
+          },
+          {
+            "table": "balance_checkpoints",
+            "uuid": "c3",
+            "updatedAt": "2026-11-01T10:00:00Z",
+            "parentUuid": "a2",
+            "key": "2026-11-05",
+            "fields": {
+              "date": "2026-11-05",
+              "balanceCents": 120
+            }
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "a newer edit brings a deleted account back, but not the item its deletion had taken",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": "a1",
+              "key": null,
+              "fields": {
+                "name": "Rent",
+                "amountCents": -1000
+              }
+            }
+          ],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "deletedAt": "2026-11-01T11:00:00Z"
+            }
+          ]
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T12:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Back"
+              }
+            }
+          ],
+          "tombstones": [
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "deletedAt": "2026-11-01T11:00:00Z"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T12:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "Back"
+            }
+          }
+        ],
+        "tombstones": [
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "deletedAt": "2026-11-01T11:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "three devices, each knowing part of the story",
+      "states": [
+        {
+          "device": "A",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "v1"
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T11:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "v2"
+              }
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "updatedAt": "2026-11-01T11:00:00Z",
+              "parentUuid": "a1",
+              "key": null,
+              "fields": {
+                "name": "Rent",
+                "amountCents": -1000
+              }
+            }
+          ],
+          "tombstones": []
+        },
+        {
+          "device": "C",
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "a1",
+              "updatedAt": "2026-11-01T12:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "v3"
+              }
+            }
+          ],
+          "tombstones": [
+            {
+              "table": "recurring_items",
+              "uuid": "i1",
+              "deletedAt": "2026-11-01T12:00:00Z"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "rows": [
+          {
+            "table": "accounts",
+            "uuid": "a1",
+            "updatedAt": "2026-11-01T12:00:00Z",
+            "parentUuid": null,
+            "key": null,
+            "fields": {
+              "name": "v3"
+            }
+          }
+        ],
+        "tombstones": [
+          {
+            "table": "recurring_items",
+            "uuid": "i1",
+            "deletedAt": "2026-11-01T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "devices with nothing to say give nothing",
+      "states": [
+        {
+          "device": "A",
+          "rows": [],
+          "tombstones": []
+        },
+        {
+          "device": "B",
+          "rows": [],
+          "tombstones": []
+        }
+      ],
+      "expected": {
+        "rows": [],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "no devices give nothing",
+      "states": [],
+      "expected": {
+        "rows": [],
+        "tombstones": []
+      }
+    }
+  ],
+  "nextStampCases": [
+    {
+      "name": "the clock is ahead: the clock",
+      "now": "2026-11-01T11:00:00Z",
+      "newestSeen": "2026-11-01T10:00:00Z",
+      "expected": "2026-11-01T11:00:00Z"
+    },
+    {
+      "name": "a stamp seen from another device is ahead: that stamp",
+      "now": "2026-11-01T10:00:00Z",
+      "newestSeen": "2026-11-01T11:00:00Z",
+      "expected": "2026-11-01T11:00:00Z"
+    },
+    {
+      "name": "nothing seen yet: the clock",
+      "now": "2026-11-01T11:00:00Z",
+      "newestSeen": null,
+      "expected": "2026-11-01T11:00:00Z"
+    },
+    {
+      "name": "equal: the same instant",
+      "now": "2026-11-01T10:00:00Z",
+      "newestSeen": "2026-11-01T10:00:00Z",
+      "expected": "2026-11-01T10:00:00Z"
+    },
+    {
+      "name": "whole seconds: the fraction is dropped",
+      "now": "2026-11-01T10:00:00.900Z",
+      "newestSeen": null,
+      "expected": "2026-11-01T10:00:00Z"
+    }
+  ]
+}
