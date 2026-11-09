@@ -957,6 +957,238 @@
       "expected": {
         "skipped": "FUTURE_STAMP"
       }
+    },
+    {
+      "name": "a stamp with an offset instead of Z",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"943c23a8e3746f204fa568c9d6aa6cb40a289d7c2893327acb6c15280d1208b0\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:00+00:00\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp with a lowercase z",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"c7479d592c461cb94983a75d14f3d7372ea739676350d93d83e3e02f2a4d79d3\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:00z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp without seconds",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"c1974212823ccf8c602541135bd21b41e42b28a9831f095be2a2dfa3b679dde9\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00Z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp with ten digits of fraction",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"0e399e4ff7d6004418411a9f1a581887afb9c31680a5b53f371238d32c1dd6eb\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:00.1234567890Z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp at hour 24",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"6e1a248feb1e245308c909f2d53f89714619f1ca3055c4c265e3b1744e0f1f8b\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T24:00:00Z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp with a leap second",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"d20164c82c5a1a40d4a825b1861435e3f7386591b47ad7300024d8dce5693d36\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:60Z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp with a leap second at the end of a day",
+      "note": "The platform's parser takes 23:59:60Z, which makes it a case a reader that only calls it must be told about; the desktop refuses every :60.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"77d818f3a0837067ece0f53723bcf46cdcaa5bae295f5d7154bd38d52727f9d0\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-06-30T23:59:60Z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp on a day that does not exist",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"4cbe914dcafc471ffaa8883a039505185e0ab3337775d2ac08dc125d5132cbf6\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-02-30T10:00:00Z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a stamp with a space instead of the T",
+      "note": "One form only, the one Instant.toString() writes (ADR-0009): a reader that accepts more would merge a file the other app skips.",
+      "file": "{\"format\": 1, \"payloadSha256\": \"b7411d7f99a642a4f0ace62efe4bd3f0eab609e50a13e9d09687bef57c1ac503\", \"payload\": \"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"6b0f8a3e-1d2c-4e5f-9a7b-0c1d2e3f4a5b\\\",\\\"name\\\":\\\"Pixel 10\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-1\\\",\\\"updatedAt\\\":\\\"2026-11-05 10:00:00Z\\\",\\\"name\\\":\\\"Chequing\\\",\\\"currency\\\":\\\"CAD\\\",\\\"startingBalanceCents\\\":150000,\\\"startingBalanceDate\\\":\\\"2026-11-01\\\",\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[],\\\"balanceCorrections\\\":[],\\\"deleted\\\":[]}\"}",
+      "expected": {
+        "skipped": "INVALID"
+      }
+    },
+    {
+      "name": "a file written by the phone's own encoder: text that needs escaping, a fraction of a second, the largest whole number a desktop can hold",
+      "note": "Taken from the output of the phone's encodeSyncFile. The phone's tests check that encoding this budget again gives exactly these bytes (encoder: mobile).",
+      "encoder": "mobile",
+      "file": "{\"format\":1,\"payloadSha256\":\"a0aaf7e094b9cf89bcdfef7d542d1006588694b99297797dd85d2c642cdbc710\",\"payload\":\"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"sample-device-1\\\",\\\"name\\\":\\\"Sebastien's \\\\\\\"work\\\\\\\" Pixel 🙂 é\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00.123456Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-é-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:00Z\\\",\\\"name\\\":\\\"Épargne 💰 \\\\\\\"main\\\\\\\" \\\\\\\\ /   end\\\",\\\"currency\\\":\\\"EUR\\\",\\\"startingBalanceCents\\\":-1250,\\\"startingBalanceDate\\\":null,\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[{\\\"uuid\\\":\\\"item-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:01.500Z\\\",\\\"accountUuid\\\":\\\"acc-é-1\\\",\\\"name\\\":\\\"Loyer\\\\nligne\\\\ttab\\\\u0001\\\",\\\"amountCents\\\":-150000,\\\"frequency\\\":\\\"semimonthly\\\",\\\"interval\\\":2,\\\"startDate\\\":\\\"2026-11-01\\\",\\\"endDate\\\":\\\"2027-12-31\\\",\\\"semiMonthlyDay1\\\":15,\\\"semiMonthlyDay2\\\":31,\\\"sinkingFund\\\":true,\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"balanceCorrections\\\":[{\\\"uuid\\\":\\\"cor-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:02Z\\\",\\\"accountUuid\\\":\\\"acc-é-1\\\",\\\"date\\\":\\\"2026-11-05\\\",\\\"balanceCents\\\":9007199254740991,\\\"createdAt\\\":\\\"2026-11-05 10:00:00\\\"}],\\\"deleted\\\":[{\\\"table\\\":\\\"accounts\\\",\\\"uuid\\\":\\\"gone-acc\\\",\\\"deletedAt\\\":\\\"2026-11-06T10:00:00Z\\\"},{\\\"table\\\":\\\"recurring_items\\\",\\\"uuid\\\":\\\"gone-item\\\",\\\"deletedAt\\\":\\\"2026-11-06T10:00:00Z\\\"},{\\\"table\\\":\\\"balance_checkpoints\\\",\\\"uuid\\\":\\\"gone-cor\\\",\\\"deletedAt\\\":\\\"2026-11-06T10:00:00Z\\\"}]}\"}",
+      "expected": {
+        "read": {
+          "header": {
+            "deviceId": "sample-device-1",
+            "deviceName": "Sebastien's \"work\" Pixel 🙂 é",
+            "writtenAt": "2026-11-09T11:59:00.123456Z",
+            "schema": 1
+          },
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "acc-é-1",
+              "updatedAt": "2026-11-05T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Épargne 💰 \"main\" \\ /   end",
+                "currency": "EUR",
+                "startingBalanceCents": -1250,
+                "startingBalanceDate": null,
+                "createdAt": "2026-11-01 09:00:00"
+              }
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "item-1",
+              "updatedAt": "2026-11-05T10:00:01.500Z",
+              "parentUuid": "acc-é-1",
+              "key": null,
+              "fields": {
+                "name": "Loyer\nligne\ttab\u0001",
+                "amountCents": -150000,
+                "frequency": "semimonthly",
+                "interval": 2,
+                "startDate": "2026-11-01",
+                "endDate": "2027-12-31",
+                "semiMonthlyDay1": 15,
+                "semiMonthlyDay2": 31,
+                "sinkingFund": true,
+                "createdAt": "2026-11-01 09:00:00"
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "cor-1",
+              "updatedAt": "2026-11-05T10:00:02Z",
+              "parentUuid": "acc-é-1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 9007199254740991,
+                "createdAt": "2026-11-05 10:00:00"
+              }
+            }
+          ],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "gone-acc",
+              "deletedAt": "2026-11-06T10:00:00Z"
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "gone-item",
+              "deletedAt": "2026-11-06T10:00:00Z"
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "gone-cor",
+              "deletedAt": "2026-11-06T10:00:00Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "a file written by the desktop's own encoder: the same budget",
+      "note": "Taken from the output of the desktop's encodeSyncFile. Same payload as the phone's, byte for byte, apart from the time (encoder: desktop).",
+      "encoder": "desktop",
+      "file": "{\"format\":1,\"payloadSha256\":\"a7bd3046a1f8d6d96503bebda1b367f480b9f26470d5dc4de07e07b7f304d129\",\"payload\":\"{\\\"format\\\":1,\\\"schema\\\":1,\\\"device\\\":{\\\"id\\\":\\\"sample-device-1\\\",\\\"name\\\":\\\"Sebastien's \\\\\\\"work\\\\\\\" Pixel 🙂 é\\\"},\\\"writtenAt\\\":\\\"2026-11-09T11:59:00.123Z\\\",\\\"accounts\\\":[{\\\"uuid\\\":\\\"acc-é-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:00Z\\\",\\\"name\\\":\\\"Épargne 💰 \\\\\\\"main\\\\\\\" \\\\\\\\ /   end\\\",\\\"currency\\\":\\\"EUR\\\",\\\"startingBalanceCents\\\":-1250,\\\"startingBalanceDate\\\":null,\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"recurringItems\\\":[{\\\"uuid\\\":\\\"item-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:01.500Z\\\",\\\"accountUuid\\\":\\\"acc-é-1\\\",\\\"name\\\":\\\"Loyer\\\\nligne\\\\ttab\\\\u0001\\\",\\\"amountCents\\\":-150000,\\\"frequency\\\":\\\"semimonthly\\\",\\\"interval\\\":2,\\\"startDate\\\":\\\"2026-11-01\\\",\\\"endDate\\\":\\\"2027-12-31\\\",\\\"semiMonthlyDay1\\\":15,\\\"semiMonthlyDay2\\\":31,\\\"sinkingFund\\\":true,\\\"createdAt\\\":\\\"2026-11-01 09:00:00\\\"}],\\\"balanceCorrections\\\":[{\\\"uuid\\\":\\\"cor-1\\\",\\\"updatedAt\\\":\\\"2026-11-05T10:00:02Z\\\",\\\"accountUuid\\\":\\\"acc-é-1\\\",\\\"date\\\":\\\"2026-11-05\\\",\\\"balanceCents\\\":9007199254740991,\\\"createdAt\\\":\\\"2026-11-05 10:00:00\\\"}],\\\"deleted\\\":[{\\\"table\\\":\\\"accounts\\\",\\\"uuid\\\":\\\"gone-acc\\\",\\\"deletedAt\\\":\\\"2026-11-06T10:00:00Z\\\"},{\\\"table\\\":\\\"recurring_items\\\",\\\"uuid\\\":\\\"gone-item\\\",\\\"deletedAt\\\":\\\"2026-11-06T10:00:00Z\\\"},{\\\"table\\\":\\\"balance_checkpoints\\\",\\\"uuid\\\":\\\"gone-cor\\\",\\\"deletedAt\\\":\\\"2026-11-06T10:00:00Z\\\"}]}\"}",
+      "expected": {
+        "read": {
+          "header": {
+            "deviceId": "sample-device-1",
+            "deviceName": "Sebastien's \"work\" Pixel 🙂 é",
+            "writtenAt": "2026-11-09T11:59:00.123Z",
+            "schema": 1
+          },
+          "rows": [
+            {
+              "table": "accounts",
+              "uuid": "acc-é-1",
+              "updatedAt": "2026-11-05T10:00:00Z",
+              "parentUuid": null,
+              "key": null,
+              "fields": {
+                "name": "Épargne 💰 \"main\" \\ /   end",
+                "currency": "EUR",
+                "startingBalanceCents": -1250,
+                "startingBalanceDate": null,
+                "createdAt": "2026-11-01 09:00:00"
+              }
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "item-1",
+              "updatedAt": "2026-11-05T10:00:01.500Z",
+              "parentUuid": "acc-é-1",
+              "key": null,
+              "fields": {
+                "name": "Loyer\nligne\ttab\u0001",
+                "amountCents": -150000,
+                "frequency": "semimonthly",
+                "interval": 2,
+                "startDate": "2026-11-01",
+                "endDate": "2027-12-31",
+                "semiMonthlyDay1": 15,
+                "semiMonthlyDay2": 31,
+                "sinkingFund": true,
+                "createdAt": "2026-11-01 09:00:00"
+              }
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "cor-1",
+              "updatedAt": "2026-11-05T10:00:02Z",
+              "parentUuid": "acc-é-1",
+              "key": "2026-11-05",
+              "fields": {
+                "date": "2026-11-05",
+                "balanceCents": 9007199254740991,
+                "createdAt": "2026-11-05 10:00:00"
+              }
+            }
+          ],
+          "tombstones": [
+            {
+              "table": "accounts",
+              "uuid": "gone-acc",
+              "deletedAt": "2026-11-06T10:00:00Z"
+            },
+            {
+              "table": "recurring_items",
+              "uuid": "gone-item",
+              "deletedAt": "2026-11-06T10:00:00Z"
+            },
+            {
+              "table": "balance_checkpoints",
+              "uuid": "gone-cor",
+              "deletedAt": "2026-11-06T10:00:00Z"
+            }
+          ]
+        }
+      }
     }
   ]
 }
