@@ -22,6 +22,8 @@ import { detectSyncedFolders, isWritableDirectory } from '../backup/folders';
 import { listSnapshots, resolveSnapshotPath } from '../backup/snapshots';
 import { snapshotNow } from '../backup/schedule';
 import { notifyBudgetChanged } from '../syncing/changes';
+import { getSyncCoordinator } from '../syncing';
+import { createSyncRouter } from './sync';
 
 export const apiRouter = Router();
 
@@ -38,6 +40,8 @@ apiRouter.use((req, res, next) => {
   }
   next();
 });
+
+apiRouter.use('/sync', createSyncRouter(getSyncCoordinator));
 
 const FREQUENCIES: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly', 'semimonthly'];
 const CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP'];
