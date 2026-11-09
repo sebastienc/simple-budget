@@ -70,8 +70,9 @@ async function waitForApp(timeoutMs = 30_000) {
  * it contradict the recurring items, and the accuracy feature then reports a
  * drift of thousands a month — technically correct, and useless as demo data.
  */
-async function createAccount(name, openedCents, items, driftCents) {
-  const account = await api('POST', '/accounts', { name });
+async function createAccount(name, openedCents, items, driftCents, currency = 'CAD') {
+  // The API has required a currency since accounts got one (migration 006).
+  const account = await api('POST', '/accounts', { name, currency });
   await api('PATCH', `/accounts/${account.id}`, { startingBalanceCents: openedCents, startingBalanceDate: monthsAgo(6, 1) });
   for (const item of items) {
     await api('POST', `/accounts/${account.id}/recurring-items`, item);
