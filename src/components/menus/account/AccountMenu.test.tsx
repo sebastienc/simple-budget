@@ -23,7 +23,45 @@ describe('AccountMenu', () => {
     await openMenu(user);
     await user.click(screen.getByRole('menuitem', { name: 'Erase all data' }));
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    // Only the question "is sync on?" (to word the confirmation) may be asked; nothing is erased.
+    await vi.waitFor(() => expect(window.confirm).toHaveBeenCalled());
+    expect(fetchMock.mock.calls.every(([url]) => url === '/api/sync')).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/wipe', expect.anything());
+
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('says in the confirmation that the other devices will follow when sync is on', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ enabled: true, folder: '/Drive', running: false, devices: [], problem: null, changesBroughtIn: null, lastRead: null, lastWrite: null })));
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    renderWithProviders(<AccountMenu />);
+    await openMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Erase all data' }));
+
+    await vi.waitFor(() => expect(confirm).toHaveBeenCalled());
+    expect(confirm.mock.calls[0][0]).toContain('other devices will erase their data too');
+
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('keeps the plain confirmation when sync is off, or when that cannot be found out', async () => {
+    const user = userEvent.setup();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    for (const answer of [jsonResponse({ enabled: false, devices: [] }), jsonResponse({}, 500), undefined]) {
+      vi.stubGlobal('fetch', vi.fn().mockImplementation(() => (answer ? Promise.resolve(answer) : Promise.reject(new Error('offline')))));
+      const { unmount } = renderWithProviders(<AccountMenu />);
+      await openMenu(user);
+      await user.click(screen.getByRole('menuitem', { name: 'Erase all data' }));
+      await vi.waitFor(() => expect(confirm).toHaveBeenCalled());
+      expect(confirm.mock.calls[confirm.mock.calls.length - 1][0]).not.toContain('other devices');
+      confirm.mockClear();
+      unmount();
+    }
 
     vi.unstubAllGlobals();
     vi.restoreAllMocks();

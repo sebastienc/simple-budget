@@ -62,12 +62,41 @@ describe('BackupsDialog', () => {
     await user.type(screen.getByLabelText('Backup folder'), '/backups');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    // Just GET then PUT — the PUT response body already carries the updated
+    // GET then PUT — the PUT response body already carries the updated
     // settings/snapshots, so the hook merges it in rather than refetching.
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    // With a folder now saved, the sync section reads its status once.
+    await waitFor(() => expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/api/backup/folder', '/api/backup/folder', '/api/sync']));
     const [putUrl, putInit] = fetchMock.mock.calls[1];
     expect(putUrl).toBe('/api/backup/folder');
     expect(JSON.parse(putInit.body)).toEqual({ folder: '/backups', keep: 10 });
+
+    vi.unstubAllGlobals();
+  });
+
+  it('shows the sync section, asking for a backup folder first when there is none', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(EMPTY_FOLDER)));
+
+    renderWithToaster(<BackupsDialog isOpen onOpenChange={vi.fn()} />);
+
+    expect(await screen.findByText('Sync with other devices')).toBeInTheDocument();
+    expect(screen.getByText(/Choose and save a backup folder above first/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Turn on sync' })).not.toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('offers to turn sync on once a backup folder is saved, beside the snapshots', async () => {
+    const SYNC_OFF = { enabled: false, folder: '/backups', running: false, devices: [], problem: null, changesBroughtIn: null, lastRead: null, lastWrite: null };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => jsonResponse(url === '/api/sync' ? SYNC_OFF : { ...EMPTY_FOLDER, folder: '/backups' })),
+    );
+
+    renderWithToaster(<BackupsDialog isOpen onOpenChange={vi.fn()} />);
+
+    const turnOn = await screen.findByRole('button', { name: 'Turn on sync' });
+    await waitFor(() => expect(turnOn).toBeEnabled()); // disabled until the server has said how sync stands
+    expect(screen.getByText('Snapshots')).toBeInTheDocument();
 
     vi.unstubAllGlobals();
   });
