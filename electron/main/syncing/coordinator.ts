@@ -93,6 +93,12 @@ export class SyncCoordinator {
     return { enabled: settings.enabled, folder, running: this.running > 0, ...this.shown, lastRead: settings.lastRead, lastWrite: settings.lastWrite };
   }
 
+  /** The first link the person is being offered for `deviceId`, as of the last sync, if there is one. */
+  offerFor(deviceId: string): FirstLinkOffer | undefined {
+    const found = this.shown.devices.find((device) => device.kind === 'offer' && device.deviceId === deviceId);
+    return found?.kind === 'offer' ? found.offer : undefined;
+  }
+
   /** Turns sync on and syncs. It needs a folder: without one nothing is changed and the answer says so. */
   async turnOn(): Promise<'on' | 'no-folder'> {
     if ((await this.deps.folderPath()) === null) {
