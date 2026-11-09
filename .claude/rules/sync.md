@@ -14,3 +14,4 @@ The design lives in the mobile repo (`simple-budget-mobile`): ADR-0008 (the mode
 - **Numbers in a file are safe integers** (cents below 2^53). A file with a bigger one is skipped, not rounded.
 - **A file is merged whole or not at all.** Anything wrong with it skips the whole file for this round (see `SkipReason`).
 - **Files here run through Node's type stripping or vitest only**: no enums or parameter properties (`erasableSyntaxOnly`).
+- **Every row has a `uuid` and an `updated_at`, and deletions are recorded** (migration 007): `deleted_rows(table_name, uuid, deleted_at)` holds a tombstone for every row ever deleted, kept for good and never pruned, with the same names as the mobile app's table. The write rules are in `backend.md`; `updated_at` and `deleted_at` are stamps (`2026-11-05T10:00:00Z`), and a deleted account leaves a tombstone for each item and correction it takes with it, all at one stamp.

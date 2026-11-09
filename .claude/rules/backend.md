@@ -7,7 +7,9 @@ paths:
 
 **Data layer:** SQLite via `better-sqlite3`, queried through Kysely (`db/queries.ts`, schema in `db/schema.ts`).
 
-**Migrations are in-code**, not filesystem-discovered — electron-vite bundles the main process into a single file, so migrations can't be read from disk at runtime. Add a new file under `db/migrations/`, then register it in the `Record<string, Migration>` map in `db/index.ts` (import it and add the map entry). Existing migrations are additive (new tables/columns) rather than destructive rewrites, once real user data exists — prefer the same unless there's a strong reason not to.
+**`db/queries.ts` is the only place of writes**, and every write there is sync-aware (see `sync.md`): an insert sets a `uuid` (`randomUUID()`) and `updated_at`, an update sets `updated_at`, and a delete writes a tombstone to `deleted_rows`, all through `db/stamps.ts` and inside the write's own transaction. The stamp is `nextWriteStamp(trx)`: the later of the clock and the newest stamp in the database. A new write path must do the same; `db/stamps.test.ts` lists the paths and fails on one it does not know.
+
+**Migrations are in-code**, not filesystem-discovered — electron-vite bundles the main process into a single file, so migrations can't be read from disk at runtime. Add a new file under `db/migrations/`, then register it in the `Record<string, Migration>` map in `db/index.ts` (import it and add the map entry). Existing migrations are additive (new tables/columns) rather than destructive rewrites, once real user data exists — prefer the same unless there's a strong reason not to. `initDb` takes a safety copy (`backups/simple-budget-before-migration-<stamp>.db`, beside the database) before it upgrades a database that already holds data, so a migration never runs on the only copy of the budget.
 
 **Backups (`backup/`)** write snapshots into a folder a cloud client syncs (Google Drive, Dropbox, iCloud),
 on quit and once a day, keeping the last N *per machine* — `naming.ts` holds the file-naming and retention
