@@ -83,6 +83,11 @@ export class SyncEngine {
     return result;
   }
 
+  /** Runs `task` while no sync is running and none starts, such as swapping the whole database from under it. */
+  exclusively<T>(task: () => Promise<T>): Promise<T> {
+    return this.exclusive(task);
+  }
+
   sync(): Promise<SyncOutcome> {
     return this.exclusive(() => this.runSync());
   }

@@ -303,6 +303,44 @@ describe('SyncEngine.sync', () => {
     });
   });
 
+  it('lets a task run alone: it waits for a sync that is running, and the next sync waits for it', async () => {
+    await withTestDb(async () => {
+      const folder = new MemoryFolder();
+      let open!: () => void;
+      folder.gate = new Promise<void>((resolve) => (open = resolve));
+      const engine = engineFor(folder);
+      const order: string[] = [];
+
+      const running = engine.sync().then(() => order.push('first sync done'));
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      const alone = engine.exclusively(async () => {
+        order.push('task');
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        order.push('task done');
+      });
+      folder.gate = null;
+      const next = engine.sync().then(() => order.push('next sync done'));
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(order).toEqual([]); // the first sync is still held
+
+      open();
+      await Promise.all([running, alone, next]);
+      expect(order).toEqual(['first sync done', 'task', 'task done', 'next sync done']);
+    });
+  });
+
+  it('still runs what comes after a task that failed', async () => {
+    await withTestDb(async () => {
+      const engine = engineFor(new MemoryFolder());
+      await expect(
+        engine.exclusively(async () => {
+          throw new Error('no');
+        }),
+      ).rejects.toThrow('no');
+      expect((await engine.sync()).kind).toBe('done');
+    });
+  });
+
   it('settles: a row dropped as an orphan brings an old tombstone back once, then nothing changes', async () => {
     await withTestDb(async () => {
       const folder = new MemoryFolder();

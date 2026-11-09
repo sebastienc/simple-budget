@@ -16,13 +16,13 @@ import {
   type Frequency,
   type RecurringItemInput,
 } from '../projection';
-import { backupBeforeDestructiveChange, backupDbTo, replaceDbWith } from '../db';
+import { backupBeforeDestructiveChange, backupDbTo } from '../db';
 import { readBackupSettings, writeBackupSettings } from '../backup/settings';
 import { detectSyncedFolders, isWritableDirectory } from '../backup/folders';
 import { listSnapshots, resolveSnapshotPath } from '../backup/snapshots';
 import { snapshotNow } from '../backup/schedule';
 import { notifyBudgetChanged } from '../syncing/changes';
-import { getSyncCoordinator } from '../syncing';
+import { getSyncCoordinator, replaceBudget } from '../syncing';
 import { createSyncRouter } from './sync';
 
 export const apiRouter = Router();
@@ -698,7 +698,7 @@ apiRouter.post('/backup/restore', async (req, res) => {
   }
 
   try {
-    await replaceDbWith(path);
+    await replaceBudget(path, backupPath);
     res.json({ ok: true, backupPath });
   } catch (error) {
     console.error('Restore failed', error);
@@ -761,9 +761,20 @@ apiRouter.post('/backup/import', express.raw({ type: '*/*', limit: '50mb' }), as
       return;
     }
 
-    await replaceDbWith(tempPath);
+    // As for a restore and a wipe, the app takes the copy itself rather than trusting that anyone exported one.
+    let backupPath: string;
+    try {
+      backupPath = await backupBeforeDestructiveChange('before-import');
+    } catch (error) {
+      await unlink(tempPath).catch(() => {});
+      console.error('Backup before import failed; nothing was replaced', error);
+      res.status(500).json({ error: 'backup_failed' });
+      return;
+    }
+
+    await replaceBudget(tempPath, backupPath);
     await unlink(tempPath).catch(() => {});
-    res.json({ ok: true });
+    res.json({ ok: true, backupPath });
   } catch (error) {
     await unlink(tempPath).catch(() => {});
     console.error('Backup import failed', error);

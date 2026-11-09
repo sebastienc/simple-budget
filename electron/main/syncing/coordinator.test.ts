@@ -23,6 +23,7 @@ function setUp(initial: Partial<SyncSettings> = {}, folder: string | null = '/Dr
   const engine = {
     sync: vi.fn(async (): Promise<SyncOutcome> => outcomes.shift() ?? done()),
     resolveFirstLink: vi.fn(async (): Promise<SyncOutcome> => outcomes.shift() ?? done()),
+    exclusively: async <T>(task: () => Promise<T>) => task(),
   };
   const deps: CoordinatorDeps = {
     engine,
@@ -255,6 +256,15 @@ describe('SyncCoordinator turning on and off', () => {
     await vi.advanceTimersByTimeAsync(DEFAULT_CHANGE_DELAY_MS * 2);
     expect(engine.sync).not.toHaveBeenCalled();
     coordinator.stop();
+  });
+});
+
+describe('SyncCoordinator while idle', () => {
+  it('hands a task to the engine to run alone, and returns what it returns', async () => {
+    const { coordinator, engine } = setUp({ enabled: true });
+    engine.exclusively = vi.fn(async (task) => task()) as typeof engine.exclusively;
+    expect(await coordinator.whileSyncIsIdle(async () => 42)).toBe(42);
+    expect(engine.exclusively).toHaveBeenCalledTimes(1);
   });
 });
 

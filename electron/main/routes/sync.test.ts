@@ -29,6 +29,7 @@ function setUp(initial: Partial<SyncSettings> = {}, folder: string | null = '/Dr
   const engine = {
     sync: vi.fn(async (): Promise<SyncOutcome> => outcomes.shift() ?? report([])),
     resolveFirstLink: vi.fn(async (): Promise<SyncOutcome> => outcomes.shift() ?? report([])),
+    exclusively: async <T>(task: () => Promise<T>) => task(),
   };
   const coordinator = new SyncCoordinator({
     engine,

@@ -1,5 +1,6 @@
 import { hostname } from 'os';
 import { backupBeforeDestructiveChange } from '../db';
+import { replaceDb } from '../db/syncReplace';
 import { syncStore } from '../db/syncStore';
 import { readBackupSettings } from '../backup/settings';
 import { SyncCoordinator } from './coordinator';
@@ -35,4 +36,18 @@ export function getSyncCoordinator(): SyncCoordinator {
     folderPath: async () => (await readBackupSettings()).folder,
   });
   return instance;
+}
+
+/**
+ * Replaces the whole budget with the database at `sourcePath` (a restore or an import), after the safety copy at
+ * `undoPath` was taken. With sync on, the replacement wins on every device (see db/syncReplace.ts) and no sync runs
+ * while the database is swapped; if anything fails, the safety copy is put back.
+ */
+export async function replaceBudget(sourcePath: string, undoPath: string): Promise<void> {
+  const syncOn = (await readSyncSettings()).enabled;
+  if (!syncOn) {
+    await replaceDb(sourcePath, undoPath, { keepSyncHistory: false });
+    return;
+  }
+  await getSyncCoordinator().whileSyncIsIdle(() => replaceDb(sourcePath, undoPath, { keepSyncHistory: true }));
 }
