@@ -7,6 +7,7 @@ import TextField from '@/components/ui/TextField';
 import { formatInstant } from '@/lib/dates';
 import { useBackupFolder, type Snapshot } from '@/data/useBackupFolder';
 import { useToaster } from '@/toast/useToaster';
+import SyncSection from './SyncSection';
 
 export interface BackupsDialogProps {
   isOpen: boolean;
@@ -110,6 +111,8 @@ const BackupsDialog: React.FC<BackupsDialogProps> = ({ isOpen, onOpenChange }) =
           </p>
         )}
       </div>
+
+      <SyncSection isOpen={isOpen} folder={folder} />
 
       {folder && (
         <div className="flex flex-col gap-2">

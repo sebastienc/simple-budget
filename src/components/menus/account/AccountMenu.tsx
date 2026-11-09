@@ -7,6 +7,7 @@ import AppearanceControl from './Theme/AppearanceControl';
 import LanguageSelector from './LanguageSelection/LanguageSelector';
 import BackupsDialog from './Backups/BackupsDialog';
 import { useBackup } from '@/data/useBackup';
+import { fetchSyncEnabled } from '@/data/useSync';
 import { useToaster } from '@/toast/useToaster';
 
 const AccountMenu = () => {
@@ -17,7 +18,8 @@ const AccountMenu = () => {
   const [isBackupsOpen, setIsBackupsOpen] = useState(false);
 
   const handleWipe = async () => {
-    if (!window.confirm(t('WipeConfirm'))) {
+    // With sync on, erasing here erases on the other devices too: say so before asking.
+    if (!window.confirm(t((await fetchSyncEnabled()) ? 'WipeConfirmSync' : 'WipeConfirm'))) {
       return;
     }
     const result = await wipeAllData();
