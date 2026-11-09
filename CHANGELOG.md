@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.3.0](https://github.com/sebastienc/simple-budget/compare/v1.2.1...v1.3.0) (2026-11-09)
+
+
+### Features
+
+* add the sync engine ([2d62c51](https://github.com/sebastienc/simple-budget/commit/2d62c51ffec0a33476d50487ac9406ef1091f76e))
+* add the sync file codec and check all three golden files ([f83cee4](https://github.com/sebastienc/simple-budget/commit/f83cee45276557c7fa86f8a99d8ccff9bf410eea))
+* add the sync folder, the sync settings and the budget-changed signal ([6827817](https://github.com/sebastienc/simple-budget/commit/68278171068dce76a96bcfcb022c6d71411b1bfe))
+* add the sync model, stamps and merge ([d0f2eee](https://github.com/sebastienc/simple-budget/commit/d0f2eeed5c7084c23acf22f25c8f605449ac0116))
+* add the sync planner ([8b5267d](https://github.com/sebastienc/simple-budget/commit/8b5267dc7b970a8d97db0c728b9b3a064fb91c0f))
+* add the sync routes the screen talks to ([5c4e844](https://github.com/sebastienc/simple-budget/commit/5c4e84433f7e218f966b5208df122b8635929f43))
+* add the Sync section to the Backups dialog ([73748c6](https://github.com/sebastienc/simple-budget/commit/73748c68d8fa602d7176a270952a62fa891223ba))
+* add the sync store, the database side of sync ([88276e0](https://github.com/sebastienc/simple-budget/commit/88276e0eed83124b841b48d2f9e163c91c2f5e59))
+* give every row a uuid and a stamp, and record deletions, for sync ([2902ab6](https://github.com/sebastienc/simple-budget/commit/2902ab6fe808a3162c1f5fe41a5245dba8974946))
+* make a restore or import win on every device while sync is on ([6d37109](https://github.com/sebastienc/simple-budget/commit/6d371093698107fc0b6bdd9a2abd151d4dbb0e3c))
+* run sync on a schedule from the app, over the backup folder ([6ba9368](https://github.com/sebastienc/simple-budget/commit/6ba9368a89811ac65a6bf6f5c752f6fbbbc0beed))
+* say in the restore and import confirmations that the other devices follow ([207ec1f](https://github.com/sebastienc/simple-budget/commit/207ec1f4ddc97fe3db5e7ad83b39987e3eac5a01))
+
+
+### Fixes
+
+* refuse a recurring item that ends before it starts ([f0d2b89](https://github.com/sebastienc/simple-budget/commit/f0d2b89a24c86f34f58099817e6e9289653d2dfe))
+* say so in the item form when the end date is before the start date ([d693312](https://github.com/sebastienc/simple-budget/commit/d6933121e8446ba4e839c11d04e62caf6f3a1c7b))
+* send a currency when the demo seed script creates accounts ([95289f7](https://github.com/sebastienc/simple-budget/commit/95289f77983c5e20115e7d2d55cac5276f49e372))
+
 ## [1.2.1](https://github.com/sebastienc/simple-budget/compare/v1.2.0...v1.2.1) (2026-09-10)
 
 
