@@ -11,14 +11,16 @@ import * as migration003SemimonthlyRecurringItems from './migrations/003_semimon
 import * as migration004BalanceCheckpoints from './migrations/004_balance_checkpoints';
 import * as migration005RecurringItemSinkingFund from './migrations/005_recurring_item_sinking_fund';
 import * as migration006AccountCurrency from './migrations/006_account_currency';
+import * as migration007SyncIdentity from './migrations/007_sync_identity';
 
-const migrations: Record<string, Migration> = {
+export const migrations: Record<string, Migration> = {
   '001_init': migration001Init,
   '002_recurring_items': migration002RecurringItems,
   '003_semimonthly_recurring_items': migration003SemimonthlyRecurringItems,
   '004_balance_checkpoints': migration004BalanceCheckpoints,
   '005_recurring_item_sinking_fund': migration005RecurringItemSinkingFund,
   '006_account_currency': migration006AccountCurrency,
+  '007_sync_identity': migration007SyncIdentity,
 };
 
 class InlineMigrationProvider implements MigrationProvider {
@@ -59,6 +61,16 @@ export async function initDb(): Promise<Kysely<Database>> {
   db = new Kysely<Database>({ dialect: new SqliteDialect({ database: sqlite }) });
 
   const migrator = new Migrator({ db, provider: new InlineMigrationProvider() });
+
+  // An upgrade of a database that already holds data gets a safety copy first (a fresh database has nothing to lose).
+  // Migrations are additive and run in a transaction each, but a copy costs a few kilobytes and a mistake in one would
+  // be the person's budget.
+  const known = await migrator.getMigrations();
+  const pending = known.filter((migration) => migration.executedAt === undefined);
+  if (pending.length > 0 && pending.length < known.length) {
+    await backupBeforeDestructiveChange('before-migration');
+  }
+
   const { error, results } = await migrator.migrateToLatest();
 
   results?.forEach((result) => {

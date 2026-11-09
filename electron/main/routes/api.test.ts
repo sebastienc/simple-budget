@@ -31,6 +31,8 @@ function recurringItemRow(overrides: Partial<Selectable<RecurringItemsTable>> = 
     semi_monthly_day2: null,
     sinking_fund: 0,
     created_at: '2026-01-01T00:00:00.000Z',
+    uuid: '00000000-0000-4000-8000-000000000001',
+    updated_at: '2026-01-01T00:00:00Z',
     ...overrides,
   };
 }
