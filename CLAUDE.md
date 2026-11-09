@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Simple Budget is a local-only, single-device Electron budgeting app (React + TypeScript + SQLite) built around a day-by-day cash-flow projection. See `.claude/rules/` for architecture details — they load automatically for the relevant files. See `ROADMAP.md` for what's built and what was deliberately dropped.
+Simple Budget is a local-only Electron budgeting app (React + TypeScript + SQLite) built around a day-by-day cash-flow projection. It can keep itself in step with the Android companion app (`simple-budget-mobile`) through the backup folder; see `.claude/rules/sync.md`. See `.claude/rules/` for architecture details — they load automatically for the relevant files. See `ROADMAP.md` for what's built and what was deliberately dropped.
 
 ## Development Commands
 
